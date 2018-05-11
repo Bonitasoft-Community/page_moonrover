@@ -1,7 +1,7 @@
 # page_moonrover
 Report on BDM
 
- <img src="screenshoot_noonrover.jpg"/> 
+ <img src="screenshoot_moonrover.jpg"/> 
 Noon Rover is used to access the Business Data Model information. All data in theses tables can be search.
 When to use it? 
 In production, to search data in your database.
