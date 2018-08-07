@@ -55,7 +55,7 @@ public class NRExecutorSql extends NRExecutor {
         executorStream.result = new NRBusResult(executorStream.selection.busDefinition);
         for (String columnName : executorStream.listColumnName) {
             NRBusAttribute busAttribute = executorStream.selection.busDefinition.getInstanceAttribute(
-                    executorStream.selection.busDefinition.getTableName(), columnName, TYPECOLUMN.STRING);
+                    executorStream.selection.busDefinition.getTableName(), columnName, TYPECOLUMN.STRING, false);
             executorStream.result.addListResultsetColumFromAttribute(busAttribute);
         }
         return executorStream;

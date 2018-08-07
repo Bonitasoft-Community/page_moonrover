@@ -6,7 +6,7 @@
 (function() {
 
 
-var appCommand = angular.module('moonrovermonitor', ['googlechart', 'ui.bootstrap','ngSanitize', 'angularFileUpload']);
+var appCommand = angular.module('moonrovermonitor', ['googlechart', 'ui.bootstrap','ngSanitize', 'ngModal', 'angularFileUpload']);
 
 // Constant used to specify resource base path (facilitates integration into a Bonita custom page)
 
@@ -77,7 +77,8 @@ appCommand.controller('moonroverController',
 					{ "name": "Descendant", "value":"DESC"}
 				],
 				"listtyperesult": [ 
-				 { "name": "Table", 	   "value":"TABLE"}
+					{ "name": "Editable Record", "value":"EDITRECORD"},
+					{ "name": "Table", 	   	 "value":"TABLE"}
 				 // { "name": "Chart", 	   "value":"CHART"},
 				 // { "name": "Jasper", 	   "value":"JASPER"}
 				],
@@ -103,8 +104,9 @@ appCommand.controller('moonroverController',
 		console.log("noonrover.loadSources");
 		var param={};
 		var json= encodeURIComponent( angular.toJson( param, true));
-
-		var url='?page=custompage_moonrover&action=loadsources&paramjson='+json;
+		var d = new Date();
+		
+		var url='?page=custompage_moonrover&action=loadsources&paramjson='+json+'&t='+d.getTime();
 		$http.get( url )
 				.success( function ( jsonResult ) {
 							self.inprogress						= false;
@@ -130,8 +132,7 @@ appCommand.controller('moonroverController',
 	};
 
 	this.setSource = function()
-	{
-		
+	{		
 		var source = null;
 		var sourcename=this.request.sourcename;
 		console.log("noonrover.setSource name=["+sourcename+"]");
@@ -313,8 +314,9 @@ appCommand.controller('moonroverController',
 		self.saveinfo.description 			= item.description;
 		self.inprogress						= true;
 		self.report.listevents ='';
+		var d = new Date();
 		
-		var url='?page=custompage_moonrover&action=loadRequest&paramjson='+json;
+		var url='?page=custompage_moonrover&action=loadRequest&paramjson='+json+'&t='+d.getTime();
 		$http.get( url )
 				.success( function ( jsonResult ) {
 			
@@ -344,8 +346,9 @@ appCommand.controller('moonroverController',
 			var self=this;
 			self.inprogress						= true;
 			self.report.listevents ='';
-
-			var url='?page=custompage_moonrover&action=deleteRequest&paramjson='+json;
+			var d = new Date();
+			
+			var url='?page=custompage_moonrover&action=deleteRequest&paramjson='+json+'&t='+d.getTime();
 			$http.get( url )
 			.success( function ( jsonResult ) {
 				
@@ -369,8 +372,9 @@ appCommand.controller('moonroverController',
 		var json= encodeURIComponent( angular.toJson( param, true));
 		var self=this;
 		self.inprogress						= true;
-
-		var url='?page=custompage_moonrover&action=listRequests&paramjson='+json;
+		var d = new Date();
+		
+		var url='?page=custompage_moonrover&action=listRequests&paramjson='+json+'&t='+d.getTime();
 		$http.get( url )
 				.success( function ( jsonResult ) {
 							self.inprogress						= false;
@@ -481,6 +485,97 @@ appCommand.controller('moonroverController',
 	}
 	
 	
+	
+	// -----------------------------------------------------------------------------------------
+	//  										EditRecord
+	// -----------------------------------------------------------------------------------------
+	this.edit = { 'allowAddRecord' : false, 'listrecords': [], 'sourcename':'', 'listevents':''}
+	
+	
+		
+		
+	var modalInstance=null;
+	this.openModalRecord= function()
+	{
+		console.log("openDialog 2");
+		$('#myModal').modal('show'); 
+		
+	}
+	this.closeModalRecord = function()
+	{
+		$('#myModal').modal('hide'); 
+		
+	}
+
+	/**
+	 * calculate the list of field to add / edit a record
+	 */
+	this.getListFields = function( recordData, headers )
+	{
+		var listFields=[];
+		for (var i in headers)
+		{
+			var oneHeader = headers[ i ]
+			console.log('edit record header='+angular.toJson( oneHeader ));
+			
+			if (oneHeader.type== '_EDITRECORD')
+				continue;
+			
+			var record = {'name': oneHeader.columnid, 'title': oneHeader.title,'type': oneHeader.type, 'value': '' };
+			record.show=true;
+			if (oneHeader.columnid == 'PersistenceId')
+				record.show=false;
+			record.value = recordData[ oneHeader.columnid ];
+			
+			listFields.push( record );
+		
+		}
+		return listFields;
+		
+	}
+	this.editRecord = function( recordData, headers, sourcename)
+	{
+		console.log('edit record '+sourcename);
+		
+		// prepare the data to display in the modal
+		this.edit.listrecords=[];
+		this.edit.sourcename 	= sourcename;
+		this.edit.listrecords 	= this.getListFields( recordData, headers );
+		this.edit.operation 	= 'UPDATE';
+
+		this.openModalRecord();
+		
+	}
+	this.addRecord = function( headers, sourcename)
+	{
+		// prepare the data to display in the modal
+		this.edit.listrecords=[];
+		this.edit.sourcename 	= sourcename;
+		this.edit.listrecords 	= this.getListFields( {}, headers );
+		this.edit.operation 	= 'INSERT';
+
+		this.openModalRecord();
+		
+	}
+	this.updateRecord = function( )
+	{
+		// call server tp update the record
+		alert('Confirm the modification ');
+		// this.edit.sourcename="com.airtahitinui.bpm.TNWaiverCode";
+		var param={ 'request': { 'sourcename' : this.edit.sourcename },
+				'listrecords': this.edit.listrecords};
+		
+		this.edit.listevents ='';
+		
+		// console.log("Save=");
+
+		this.bigPost( param, "updaterecordbdm");
+
+	}
+	this.allowAddRecord = function()
+	{
+		return this.edit.allowAddRecord;
+	}
 	// -----------------------------------------------------------------------------------------
 	//  										Execute Configuration Request
 	// -----------------------------------------------------------------------------------------
@@ -489,6 +584,12 @@ appCommand.controller('moonroverController',
 		var self = this;
 		self.inprogress=true;
 
+		// allow the addRecord if the type is EDITRECORD
+		if (this.request.result.typeresult == 'EDITRECORD')
+			this.edit.allowAddRecord=true;
+		else
+			this.edit.allowAddRecord=false;
+		
 		self.report.listevents ='';
 
 		if (this.display.hidefilteratexecution)
@@ -510,7 +611,9 @@ appCommand.controller('moonroverController',
 		// console.log("paramBigPost="+angular.toJson( param, false));
 		var json= angular.toJson( param, false);
 		
+		console.log("~~~~~~~~~~~~~~ BigPost Send :"+json);
 
+		
 		// the array maybe very big, so let's create a list of http call
 		this.listUrlCall=[];
 		//this.listUrlCall.push( "action=collect_reset");
@@ -547,8 +650,9 @@ appCommand.controller('moonroverController',
 	{
 		// console.log(" Call "+self.listUrlIndex+" : "+self.listUrlCall[ self.listUrlIndex ]);
 		self.listUrlPercent= Math.round( (100 *  self.listUrlIndex) / self.listUrlCall.length);
+		var d = new Date();
 		
-		$http.get( '?page=custompage_moonrover&'+self.listUrlCall[ self.listUrlIndex ] )
+		$http.get( '?page=custompage_moonrover&t='+d.getTime()+'&'+self.listUrlCall[ self.listUrlIndex ] )
 			.success( function ( jsonResult ) {
 				// console.log("Correct, for ["+self.listUrlCall[ self.listUrlIndex ] +"] jsonResult=["+angular.toJson(jsonResult)+"]");
 				// angular.toJson(jsonResult));
@@ -564,6 +668,7 @@ appCommand.controller('moonroverController',
 					
 					if (self.lastaction === 'executeRequest')
 					{
+						console.log("GetExecuteRequest answer-begin");
 						self.report.listevents = jsonResult.listevents;
 						self.report.listdata = jsonResult.listdata;
 						self.report.listheader = jsonResult.listheader;
@@ -573,12 +678,19 @@ appCommand.controller('moonroverController',
 						self.report.maxresults =  jsonResult.maxresults;
 						self.display.totallines= jsonResult.nbrecords;
 						
+						console.log("GetExecuteRequest answer-end");
 						self.report.filterrecord={};
 					}
 					if (self.lastaction === 'saveRequest')
 					{
 						self.saveinfo.listrequests = jsonResult.listrequests;
 						self.saveinfo.listevents = jsonResult.listevents;
+					}
+					if (self.lastaction === 'updaterecordbdm')
+					{
+						
+						self.edit.listevents = jsonResult.listevents;
+						console.log("updaterecordbdm-listevent="+jsonResult.listevents);
 					}
 					console.log("noonrover.loadSources : receive list");
 				}
@@ -672,6 +784,9 @@ appCommand.controller('moonroverController',
 	// -----------------------------------------------------------------------------------------
 
 	this.getListEvents = function ( listevents ) {
+		console.log("getListEvents="+listevents);
+		if (listevents == 'undefined')
+			return "";
 		return $sce.trustAsHtml(  listevents );
 	}
 	
@@ -695,8 +810,9 @@ appCommand.controller('moonroverController',
 		console.log("noonrover.init");
 		var param={};
 		var json= encodeURIComponent( angular.toJson( param, true));
-
-		var url='?page=custompage_moonrover&action=init&paramjson='+json;
+		var d = new Date();
+		
+		var url='?page=custompage_moonrover&action=init&paramjson='+json+'&t='+d.getTime();;
 		$http.get( url )
 				.success( function ( jsonResult ) {
 							self.inprogress						= false;

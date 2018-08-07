@@ -17,7 +17,8 @@ public class NRBusResult {
             "Report it as a bug");
 
     public enum TYPERESULTSET {
-        TABLE, CHART, JASPER
+        TABLE, CHART, JASPER, EDITRECORD
+                              
     };
 
     public TYPERESULTSET typeResultSet = TYPERESULTSET.TABLE;
@@ -97,7 +98,9 @@ public class NRBusResult {
      * the colum can be filtered
      */
     public static String cstJsonColumnIsfiltered = "isFiltered";
-
+    public static String cstJsonColumnType = "type";
+    public static String cstJsonColumnTypeEditRecord= "_EDITRECORD";
+    
     public Map<String, Object> getJson() {
         Map<String, Object> resultJson = new HashMap<String, Object>();
 

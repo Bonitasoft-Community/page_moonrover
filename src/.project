@@ -271,5 +271,70 @@
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.6.3/workspace/tomcat/server/temp/bonita_portal_171916@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/resources/moonrovermonitor.js</locationURI>
 		</link>
+		<link>
+			<name>custompage/7.7.1 0706/Actions.groovy</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_24228@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/Actions.groovy</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0706/Index.groovy</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_24228@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/Index.groovy</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0706/index.html</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_24228@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/index.html</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0706/moonrovermonitor.js</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_24228@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/resources/moonrovermonitor.js</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0713/Actions.groovy</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_16200@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/Actions.groovy</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0713/index.html</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_16200@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/index.html</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0713/moonrovermonitor.js</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_16200@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/resources/moonrovermonitor.js</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0730/Actions.groovy</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_24176@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/Actions.groovy</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0730/index.html</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_24176@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/index.html</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0730/moonrovermonitor.js</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_24176@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/resources/moonrovermonitor.js</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0803/Actions.groovy</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_29972@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/Actions.groovy</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0803/index.html</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_29972@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/index.html</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.7.1 0803/moonrovermonitor.js</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.7.1/workspace/tomcat/server/temp/bonita_portal_29972@Dragon-Pierre-Yves/tenants/1/pages/custompage_moonrover/resources/moonrovermonitor.js</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>

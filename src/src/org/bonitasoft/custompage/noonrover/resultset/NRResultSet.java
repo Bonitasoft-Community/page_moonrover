@@ -21,7 +21,10 @@ public abstract class NRResultSet extends NRExecutor {
      */
     public static NRResultSet getInstance(TYPERESULTSET type) throws NRException {
         if (type == TYPERESULTSET.TABLE)
-            return new NRResultSetTable();
+            return new NRResultSetTable(false);
+        if (type == TYPERESULTSET.EDITRECORD)
+            return new NRResultSetTable(true);
+              
         if (type == TYPERESULTSET.CHART)
             return new NRResultSetChart();
         if (type == TYPERESULTSET.JASPER)

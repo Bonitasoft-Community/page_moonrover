@@ -55,7 +55,7 @@ public class NRBusDefinition {
     private TYPESOURCE typeSource = TYPESOURCE.BDM;
 
     public enum TYPECOLUMN {
-        STRING, NUM, DATE, BOOLEAN
+        STRING, NUM, DATE, BOOLEAN,RELATION
     };
 
     /**
@@ -209,8 +209,14 @@ public class NRBusDefinition {
     /* -------------------------------------------------------------------- */
     public List<NRBusAttribute> listAttributes = new ArrayList<NRBusAttribute>();
 
-    public NRBusAttribute getInstanceAttribute(String tableName, String name, TYPECOLUMN typeColumn) {
-        NRBusAttribute columnParameter = new NRBusAttribute(this, tableName, name, typeColumn);
+    public NRBusAttribute getInstanceAttribute(String tableName, String name, TYPECOLUMN typeColumn, boolean isCollection) {
+        NRBusAttribute columnParameter = new NRBusAttribute(this, tableName, name, typeColumn, isCollection);
+        this.listAttributes.add(columnParameter);
+        return columnParameter;
+    }
+    public NRBusAttribute getInstanceRelationAttribute(String tableName, String name, String relationTableName, boolean isCollection) {
+        NRBusAttribute columnParameter = new NRBusAttribute(this, tableName, name, TYPECOLUMN.RELATION, isCollection);
+        columnParameter.relationTableName= relationTableName;
         this.listAttributes.add(columnParameter);
         return columnParameter;
     }
@@ -350,7 +356,10 @@ public class NRBusDefinition {
     public void fromJson(Map<String, Object> requestJson) throws NRException {
 
         NRException nrException = new NRException();
-        Map<String, Object> selectionJson = NRToolbox.getJsonMap(true, cstJsonSelection, requestJson, "/" + getName());
+        Map<String, Object> selectionJson = NRToolbox.getJsonMap(false, cstJsonSelection, requestJson, "/" + getName());
+        // information may not be given
+        if (selectionJson==null)
+            return; 
         String selectionName = NRToolbox.getJsonSt(true, cstJsonSelectionname, selectionJson, "/" + getName());
         selectedSelection = null;
         for (NRBusSelection selectionIt : listSelections) {

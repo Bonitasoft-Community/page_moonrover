@@ -53,6 +53,23 @@ public class NRExecutorStandard extends NRExecutor {
         boolean existCol = false;
         for (ResultsetColumn column : executorStream.result.listColumnset) {
 
+            if (column.attributeDefinition.relationTableName !=null)
+            {
+                // attention, this is a second table, skip it for the moment
+                column.isVisible=false;
+                column.isGroupBy=false;
+                column.isSum=false;
+                continue;
+            }
+
+            if (column.attributeDefinition.isCollection)
+            {
+                // attention, this is a second table, skip it for the moment
+                column.isVisible=false;
+                column.isGroupBy=false;
+                column.isSum=false;
+                continue;
+            }
             if (column.isVisible || column.isGroupBy || column.isSum) {
                 if (existCol)
                     sqlRequest += ", ";
@@ -195,6 +212,7 @@ public class NRExecutorStandard extends NRExecutor {
                 rs.absolute((int) executorStream.startIndex);
             int count = 0;
 
+            // Data is retrieve as it, then the next executor will decide and transform it if needed
             while (rs.next() && count < executorStream.maxResults) {
                 count++;
                 Map<String, Object> record = new HashMap<String, Object>();

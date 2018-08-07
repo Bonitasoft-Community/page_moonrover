@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.logging.Logger;
+import java.io.File
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -44,6 +45,7 @@ import org.apache.commons.lang3.StringEscapeUtils
 import org.bonitasoft.engine.identity.User;
 import org.bonitasoft.engine.search.SearchOptionsBuilder;
 import org.bonitasoft.engine.search.SearchResult;
+import org.bonitasoft.engine.service.TenantServiceSingleton
 import org.bonitasoft.console.common.server.page.PageContext
 import org.bonitasoft.console.common.server.page.PageController
 import org.bonitasoft.console.common.server.page.PageResourceProvider
@@ -62,6 +64,7 @@ import org.bonitasoft.engine.bpm.process.ArchivedProcessInstance;
 import org.bonitasoft.engine.bpm.process.ArchivedProcessInstancesSearchDescriptor;
 import org.bonitasoft.engine.bpm.process.ProcessInstance;
 import org.bonitasoft.engine.bpm.process.ProcessInstanceSearchDescriptor;
+import org.bonitasoft.engine.business.data.BusinessDataRepository
 import org.bonitasoft.engine.session.APISession;
 import org.bonitasoft.engine.api.ProcessAPI;
 
@@ -73,7 +76,8 @@ import org.bonitasoft.log.event.BEvent.Level;
 import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI;
 import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI.ParameterSource;
 import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI.ParameterSource.TYPEOUTPUT
-
+import org.bonitasoft.engine.service.TenantServiceAccessor;
+import org.bonitasoft.engine.service.TenantServiceSingleton;
 
 
 public class Actions {
@@ -121,6 +125,10 @@ public class Actions {
             APISession apiSession = pageContext.getApiSession();
             HttpSession httpSession = request.getSession();            
             ProcessAPI processAPI = TenantAPIAccessor.getProcessAPI(apiSession);
+            File pageDirectory = pageResourceProvider.getPageDirectory();
+
+            long tenantId = apiSession.getTenantId();          
+            TenantServiceAccessor tenantServiceAccessor = TenantServiceSingleton.getInstance(tenantId);             
 
                 
             String finalAction=request.getParameter("finalaction");
@@ -168,6 +176,20 @@ public class Actions {
 
                 NoonRoverAccessAPI NoonRoverAccessAPI = NoonRoverAccessAPI.getInstance();                
                 actionAnswer.responseMap = NoonRoverAccessAPI.executeRequest( ParameterSource.getInstanceFromJson(apiSession, accumulateJson), response );
+                
+            }
+            if ("updaterecordbdm".equals(finalAction)) {
+                String accumulateJson = (String) httpSession.getAttribute("accumulate" );
+                logger.info("#### log:Actions updaterecord_22 on json["+accumulateJson+"]");
+                
+                httpSession.setAttribute("request", accumulateJson);
+
+                NoonRoverAccessAPI NoonRoverAccessAPI = NoonRoverAccessAPI.getInstance();
+                
+                actionAnswer.responseMap = NoonRoverAccessAPI.updateRecordBdm( ParameterSource.getInstanceFromJson(apiSession, accumulateJson), 
+                        pageDirectory,
+                        tenantId,
+                        tenantServiceAccessor );
                 
             }
             if ("excelRequest".equals(action) ) {

@@ -7,6 +7,7 @@ import org.bonitasoft.custompage.noonrover.source.NRSource;
 import org.bonitasoft.custompage.noonrover.source.NRSourceFactory;
 import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox;
 import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox.NRException;
+import org.bonitasoft.engine.bdm.model.BusinessObject;
 import org.bonitasoft.engine.session.APISession;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
@@ -25,7 +26,13 @@ public class NRBusDefinitionFactory {
 
     public NRBusDefinition createDataDefinition(String sourceName) {
         NRBusDefinition businessDefinition = new NRBusDefinition(sourceName);
-        setBusinessDefinition.put(sourceName, businessDefinition);
+        setBusinessDefinition.put(businessDefinition.getName(), businessDefinition);
+        return businessDefinition;
+    }
+    public NRBusDefinition createDataDefinitionBDM( BusinessObject businessObject ) {
+        NRBusDefinitionBDM businessDefinition = new NRBusDefinitionBDM( businessObject );
+        
+        setBusinessDefinition.put( businessDefinition.getName(), businessDefinition);
         return businessDefinition;
     }
 
@@ -56,6 +63,7 @@ public class NRBusDefinitionFactory {
         NRBusDefinition busDefinition = getByName(sourceName);
         if (busDefinition == null)
             throw new NRException(new BEvent(eventNoDefinitionFound, sourceName));
+        
         busDefinition.fromJson(requestJson);
         return busDefinition;
     }

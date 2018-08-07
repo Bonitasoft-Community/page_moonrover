@@ -1,5 +1,6 @@
 package org.bonitasoft.custompage.noonrover;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusDefinition;
+import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusDefinitionBDM;
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusDefinitionFactory;
 import org.bonitasoft.custompage.noonrover.executor.NRExecutor;
 import org.bonitasoft.custompage.noonrover.librairy.RequestFactory;
@@ -19,8 +21,11 @@ import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox;
 import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox.NRException;
 import org.bonitasoft.engine.api.ProfileAPI;
 import org.bonitasoft.engine.api.TenantAPIAccessor;
+import org.bonitasoft.engine.business.data.BusinessDataRepository;
 import org.bonitasoft.engine.profile.Profile;
 import org.bonitasoft.engine.profile.ProfileCriterion;
+import org.bonitasoft.engine.service.TenantServiceAccessor;
+import org.bonitasoft.engine.service.TenantServiceSingleton;
 import org.bonitasoft.engine.session.APISession;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
@@ -42,6 +47,8 @@ public class NoonRoverAccessAPI {
     public static String cstJsonMaxResults = "maxresults";
     public static String cstJsonNbRecords = "nbrecords";
 
+    public static String cstJsonListEvents="listevents";
+    
     public static class ParameterSource {
 
         public String jsonSt;
@@ -54,6 +61,10 @@ public class NoonRoverAccessAPI {
 
         public String name;
 
+        
+        // source can borrow a record
+        public List<Map<String,Object>> listRecords;
+        
         public enum TYPEOUTPUT {
             NORMAL, CSV
         };
@@ -99,6 +110,11 @@ public class NoonRoverAccessAPI {
                 // name may not be present
             }
 
+            try {
+                parameterSource.listRecords = (List) jsonHash.get("listrecords");
+            } catch (Exception e) {
+                // name may not be present
+            }
             return parameterSource;
 
         }
@@ -117,7 +133,7 @@ public class NoonRoverAccessAPI {
         sourceStatus.listEvents.addAll(libraryResult.listEvents);
         Map<String, Object> record = sourceStatus.getJson();
         record.putAll(libraryResult.getJson());
-        record.put("listevents", sourceStatus.listEvents);
+        record.put(cstJsonListEvents, sourceStatus.listEvents);
 
         record.put("isAdmin", false);
         try {
@@ -179,7 +195,6 @@ public class NoonRoverAccessAPI {
         NRExecutor.ExecutorStream executorStream = new NRExecutor.ExecutorStream(parameterSource);
         executorStream.response = response;
         if (BEventFactory.isError(parameterSource.listEvents)) {
-
             executorStream.listEvents = parameterSource.listEvents;
             return executorStream.getJson();
         }
@@ -191,6 +206,25 @@ public class NoonRoverAccessAPI {
             return new HashMap<String, Object>();
     }
 
+    
+    public Map<String, Object> updateRecordBdm(final ParameterSource parameterSource,  File pageDirectory,
+            long tenantId,TenantServiceAccessor tenantServiceAccessor) {
+        
+        
+        NRBusDefinition businessDefinition=  parameterSource.businessDefinition;
+        Map<String,Object> result=null;
+        if (businessDefinition instanceof NRBusDefinitionBDM)
+        {
+           result= ((NRBusDefinitionBDM)businessDefinition).updateRecordBDM(parameterSource,  pageDirectory,
+                    tenantId,tenantServiceAccessor );
+        }
+        else
+            result= new HashMap<String,Object>();
+        return result;
+            
+    }
+
+        
     /* -------------------------------------------------------------------- */
     /*                                                                      */
     /* Request operation */

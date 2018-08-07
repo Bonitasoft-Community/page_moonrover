@@ -30,7 +30,6 @@ import org.bonitasoft.engine.session.APISession;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
 
-import com.bonitasoft.custompage.snowmobile.GeneratorSql;
 
 public class NRSourceDatabase extends NRSource {
 
@@ -41,6 +40,9 @@ public class NRSourceDatabase extends NRSource {
     public static BEvent EventInconsistenceTable = new BEvent(NRSourceDatabase.class.getName(), 1, Level.ERROR,
             "Inconsistence Table", "Table are inconsistence",
             "One table are inconsistent, missing some expected infortmation ", "Check the database");
+
+    public final static String cstSuffixColumnPid = "_pid";
+    
     /* -------------------------------------------------------------------- */
     /*                                                                      */
     /* get the list of object from the database */
@@ -170,17 +172,18 @@ public class NRSourceDatabase extends NRSource {
 
                 String colName = rs.getString("COLUMN_NAME");;
                 colName = colName == null ? "" : colName.toLowerCase();
-
-                NRBusAttribute column = businessDefinition.getInstanceAttribute(businessDefinition.getTableName(),
-                        colName, getTypeFromJdbc(rs.getInt("DATA_TYPE")));
-
+                boolean isCollection=false;
                 // don't keep in mind the system column
                 // this is a refence table : it should appears in the reference
-                if (column.name.endsWith(GeneratorSql.cstSuffixColumnPid)) {
+                if (colName.endsWith(cstSuffixColumnPid)) {
                     // jdbcColumn.colName = jdbcColumn.colName.substring(0, jdbcColumn.colName.length()-4);
-                    column.isForeignKey = true;
+                    isCollection = true;
                 }
 
+                NRBusAttribute column = businessDefinition.getInstanceAttribute(businessDefinition.getTableName(),
+                        colName, getTypeFromJdbc(rs.getInt("DATA_TYPE")),isCollection);
+
+              
                 column.length = rs.getInt("COLUMN_SIZE");
                 if (column.type == TYPECOLUMN.STRING && column.length > 100000) {
                     column.type = TYPECOLUMN.STRING; // special marker for a Text

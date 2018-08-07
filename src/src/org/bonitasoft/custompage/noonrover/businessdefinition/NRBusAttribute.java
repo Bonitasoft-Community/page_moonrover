@@ -16,16 +16,24 @@ public class NRBusAttribute {
     public String name;
     public int length;
     public boolean nullable;
-    public boolean isForeignKey = false;
+
     // the column is a Reference Key to this table
     public String referenceTable;
     public String contraintsName;
     public String tableName;
-
-    protected NRBusAttribute(NRBusDefinition busDefinition, String tableName, String name, TYPECOLUMN type) {
+    
+    // the attribut is a collection, a different sub table is created
+    public boolean isCollection;
+    
+    // the attribut is a relation, then the item contains only an ID to the item
+    // note : this can be combined by a collection
+    public String relationTableName =null;
+    
+    protected NRBusAttribute(NRBusDefinition busDefinition, String tableName, String name, TYPECOLUMN type, boolean isCollection) {
         this.busDefinition = busDefinition;
         this.tableName = tableName;
         this.name = name;
         this.type = type;
+        this.isCollection = isCollection;
     }
 }

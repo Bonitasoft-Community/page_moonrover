@@ -1,6 +1,8 @@
 package org.bonitasoft.custompage.noonrover.resultset;
 
 import java.math.BigDecimal;
+import java.sql.Clob;
+import java.sql.NClob;
 import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,8 +23,29 @@ public class NRResultSetTable extends NRResultSet {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss Z");
 
+    public boolean isEditable=false;
+    public NRResultSetTable(boolean isEditable )
+    {
+        super();
+        this.isEditable= isEditable;
+    }
+    
     public NRExecutor.ExecutorStream execute(NRExecutor.ExecutorStream requestData) throws NRException {
 
+        // isEditable ?
+        if (isEditable)
+        {
+            Map<String, Object> headerCol = new HashMap<String, Object>();
+            headerCol.put(NRBusResult.cstJsonColumnTitle, "");
+            headerCol.put(NRBusResult.cstJsonColumnId, "");
+            headerCol.put(NRBusResult.cstJsonColumnIsordered, false);
+            headerCol.put(NRBusResult.cstJsonColumnIsfiltered, false);
+
+            headerCol.put(NRBusResult.cstJsonColumnType, NRBusResult.cstJsonColumnTypeEditRecord);
+
+            requestData.listHeader.add(headerCol);
+
+        }
         // prepare the header
         Map<String, Double> sumData = new HashMap<String, Double>();
         for (ResultsetColumn column : requestData.result.listColumnset) {
@@ -33,7 +56,7 @@ public class NRResultSetTable extends NRResultSet {
                 headerCol.put(NRBusResult.cstJsonColumnIsordered, requestData.isOrderPossible);
                 headerCol.put(NRBusResult.cstJsonColumnIsfiltered, requestData.isFilterPossible);
 
-                headerCol.put("type", column.attributeDefinition.type.toString());
+                headerCol.put(NRBusResult.cstJsonColumnType, column.attributeDefinition.type.toString());
 
                 requestData.listHeader.add(headerCol);
             }
@@ -58,11 +81,28 @@ public class NRResultSetTable extends NRResultSet {
                     // format the date,
                     record.put(key, simpleDateFormat.format(record.get(key)));
                 }
-                if (record.get(key) instanceof OffsetDateTime) {
+                else if (record.get(key) instanceof OffsetDateTime) {
                     // format the date
                     record.put(key, ((OffsetDateTime) record.get(key)).format(dateTimeFormatter));
-
                 }
+                else if (record.get(key) instanceof Clob )  {
+                    Clob data = (Clob) record.get( key );
+                    try
+                    {
+                        record.put(key, data.getSubString(1L, (int) data.length()));                        
+                    }catch(Exception e)
+                    {}
+                }
+                else if (record.get(key) instanceof NClob )  {
+                    NClob data = (NClob) record.get( key );
+                    try
+                    {
+                        record.put(key, data.getSubString(1L, (int) data.length()));
+                    }catch(Exception e)
+                    {}
+                }
+                
+                    
             }
             for (String key : setColumnToRemove)
                 record.remove(key);

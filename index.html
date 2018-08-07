@@ -18,6 +18,7 @@
 	<link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/style.css">
 	<link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/dropbox.css">
 	<link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/custompage.css">
+    <link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/ng-modal.css">
 
 
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -36,7 +37,7 @@
 <!--  Page Directory: @_PAGEDIRECTORY_@ -->
 <center>
 	<table><tr><td><h1>Moon Rover</h1></td><td rowspan="2"><img src="pageResource?page=custompage_moonrover&location=img/moonrover.jpg" width="150" heigth="150" /></td></tr>
-		<tr><td style="font-size:0.8em">1.0</td></tr>
+		<tr><td style="font-size:0.8em">2.1</td></tr>
 	</table>
 </center>
 
@@ -45,8 +46,96 @@
 
 
 
-<div class="bs-component"  ng-controller="moonroverController as moonctrl">
+<div class="bs-component;modal-bg"  ng-controller="moonroverController as moonctrl">
+	
 
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Record</h4>
+        </div>
+        <div class="modal-body">
+          
+        	<table class="table  table-condensed" width="100%" >
+        	<tbody ng-repeat="record in moonctrl.edit.listrecords">
+			<tr ng-show="record.show">
+				<td>{{record.name}}</td>
+				<td>
+					<input ng-show="record.type=='STRING'" ng-model="record.value" size="40">
+					<input ng-show="record.type=='NUM'" ng-model="record.value" type="number">
+					<input ng-show="record.type=='DATE'" ng-model="record.value" type="date">
+					<div ng-show="record.type=='BOOLEAN' ">
+						<select ng-model="record.value">
+							<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
+						</select>
+					</div>
+
+				</td>
+				
+			</tr>
+			<!-- <tr><td colspan="2">{{record}}</td></tr>  --> 
+			</tbody>
+			</table>
+			<i>Fields related to another business object can't be added/modified</i>
+			
+			<div ng-show="moonctrl.inprogress">
+				<span class="Loading">.</span>Please wait, work in progress
+			</div>
+		
+			<table width="80%">
+			<tr><td style="text-align:center"><button class="btn btn-primary" ng-click="moonctrl.closeModalRecord()" ng-disabled="moonctrl.inprogress">Cancel</button></td>
+				<td style="text-align:center">
+					<button class="btn btn-success" ng-show="moonctrl.edit.operation=='UPDATE'" ng-click="moonctrl.updateRecord()" ng-disabled="moonctrl.inprogress" >Update</button>
+					<button class="btn btn-success" ng-show="moonctrl.edit.operation=='INSERT'" ng-click="moonctrl.updateRecord()" ng-disabled="moonctrl.inprogress" >Add</button>
+			</td>
+			</tr>
+			</table>
+			<div ng-bind-html="moonctrl.getListEvents(moonctrl.edit.listevents )"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  
+  
+  
+		
+		
+	<modal show='moonctrl.edit.show' dialog-title='Update record' width='75%' height='80%' 	close="moonctrl.closeRecord()">	
+		<div class="modal" width='100%' height='100%'>
+		 <div class="modal-body">
+			<div class="alert alert-defaut">
+					<div class="alert alert-success">Update a record</div>
+					
+					<table class="table  table-condensed" width="100%" >
+						<tr ng-repeat="record in moonctrl.edit.listrecords">
+							<td>{{record.name}}</td>
+							<td><input ng-model="record.value"></td>
+							<td>{{record}}</td>
+						</tr>
+					</table>
+					
+					<table width="80%">
+						<tr><td style="text-align:center"><button class="btn btn-primary" ng-click="moonctrl.closeRecord()" >Cancel</button></td>
+							<td style="text-align:center"><button class="btn btn-success" ng-click="moonctrl.updateRecord()" >Update</button></td>
+						</tr>
+					</table>
+					
+					<div ng-bind-html="moonctrl.getListEvents(moonctrl.edit.listevents )"></div>
+			</div>
+		</div>
+		</div>
+	</modal-dialog>
+
+	
  	<!--  --------------------------------  FORM ---------------------------- --> 
 	<div class="col-lg-12" ng-show="moonctrl.display.showformsection">
 		<legend class="text-primary"><span class="glyphicon glyphicon-th"></span>Form</legend>
@@ -531,6 +620,9 @@
 				</td>
 			</tr>
 		</table>
+		<p>
+		<button ng-show="moonctrl.allowAddRecord()" class="btn btn-primary btn-xs" ng-click="moonctrl.addRecord(moonctrl.getResultHeader(), moonctrl.request.sourcename)">Add a record</button>
+	    <p> 
 		<table class="table table-striped table-hover table-condensed">
 			<th ng-repeat="header in moonctrl.getResultHeader() track by $index" style="background-color: #99D9EA  ">
 	        	<div style="text-align: center;">{{header.title}}
@@ -547,6 +639,9 @@
 	        <tbody ng-repeat="record in moonctrl.getResultData() track by $index">
 				<tr>
 					<td ng-repeat="header in moonctrl.getResultHeader() track by $index">
+						<div ng-show="header.type === '_EDITRECORD'">
+							<a href="#" ng-click="moonctrl.editRecord( record, moonctrl.getResultHeader(), moonctrl.request.sourcename)"><span class="glyphicon glyphicon-pencil"></span></a>
+						</div>
 						<div ng-show="header.type === 'STRING'">
 							{{moonctrl.getValue(record, header)}}
 						</div>
@@ -568,6 +663,7 @@
 			<tbody ng-repeat="record in moonctrl.getResultFooterData() track by $index">
 				<tr >
 					<td ng-repeat="header in moonctrl.getResultHeader() track by $index" style="background-color:#ffe458">
+						
 						<div ng-show="header.type === 'STRING'">
 							{{moonctrl.getValue(record, header)}}
 						</div>
@@ -587,9 +683,11 @@
 
 			<!--  SUMMARY Record -->
 		</table>
+		
+		
 		<!--  pagination -->
 		<div ng-show="moonctrl.inprogress">
-					<span class="Loading">.</span>Please wait, work in progress
+			<span class="Loading">.</span>Please wait, work in progress
 		</div>
 		<fieldset ng-disabled="moonctrl.inprogress || moonctrl.request.sourcename==''"> 		
 			<table>
@@ -609,6 +707,9 @@
 				</td></tr>
 			</table>
 		</fieldset>
+		
+		<button ng-show="moonctrl.allowAddRecord()" class="btn btn-primary btn-xs" ng-click="moonctrl.addRecord(moonctrl.getResultHeader(), moonctrl.request.sourcename)">Add a record</button>
+	    		
 		<!--
 		
 		<div class="alert alert-success">TotalLine:<br>{{moonctrl.display.totallines}}<br>
@@ -624,6 +725,10 @@
 		<div class="alert alert-warning">Source:<br>{{moonctrl.definition.listsources}}</div>
 		 -->
 	</div>
+
+	
+
+
 
 </div> <!--  end controler -->
 
@@ -647,6 +752,7 @@
 <script src="pageResource?page=custompage_moonrover&location=3rd-party/ng-google-chart.js"></script>
 <script	src="pageResource?page=custompage_moonrover&location=js/angular-file-upload-shim.min.js"></script>
 <script	src="pageResource?page=custompage_moonrover&location=js/angular-file-upload.min.js"></script>
+<script src="pageResource?page=custompage_moonrover&location=3rd-party/ng-modal.min.js"></script> 
 
 <script src="pageResource?page=custompage_moonrover&location=3rd-party/angular-sanitize.min.js"></script>
 

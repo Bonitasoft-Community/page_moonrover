@@ -24,6 +24,7 @@ import org.bonitasoft.engine.bdm.model.Query;
 import org.bonitasoft.engine.bdm.model.QueryParameter;
 import org.bonitasoft.engine.bdm.model.field.Field;
 import org.bonitasoft.engine.bdm.model.field.FieldType;
+import org.bonitasoft.engine.bdm.model.field.RelationField;
 import org.bonitasoft.engine.bdm.model.field.SimpleField;
 import org.bonitasoft.engine.business.data.BusinessDataRepositoryException;
 import org.bonitasoft.engine.exception.BonitaHomeNotSetException;
@@ -67,34 +68,43 @@ public class NRSourceBDM extends NRSource {
             BusinessObjectModel bom = converter.unzip(bomZip);
 
             for (BusinessObject businessObject : bom.getBusinessObjects()) {
-                NRBusDefinition businessDefinition = businessFactory
-                        .createDataDefinition(businessObject.getQualifiedName());
+                NRBusDefinition businessDefinition = businessFactory.createDataDefinitionBDM(businessObject );
                 businessDefinition.setTableName(businessObject.getSimpleName());
                 businessDefinition.setTypeSource(TYPESOURCE.BDM);
                 businessDefinition.setDescription(businessObject.getDescription());
 
-                businessDefinition.setObjectTransported(businessObject);
-
+              
                 // add a sTANDARD Sql request
                 NRBusSelection standard = businessDefinition.getInstanceBusSelection("Standard");
                 standard.typeFind = TYPESELECTION.STD;
 
+                // first field : the PERSISTENCEID
+                NRBusAttribute attributePersistenceId = businessDefinition.getInstanceAttribute(businessObject.getSimpleName(), "PersistenceId", TYPECOLUMN.NUM,false);
+                businessDefinition.result.addListResultsetColumFromAttribute(attributePersistenceId);
+                standard.getInstanceSelectionParameter(attributePersistenceId.name, attributePersistenceId.type);
+              
+                
                 // collect list of result
                 for (Field field : businessObject.getFields()) {
                     TYPECOLUMN typeField;
+                    NRBusAttribute attributeDefinition =null;
                     if (field instanceof SimpleField) {
                         typeField = getTypeFromFieldType(((SimpleField) field).getType());
-                    } else
-                        typeField = TYPECOLUMN.STRING;
-
-                    NRBusAttribute attributeDefinition = businessDefinition
-                            .getInstanceAttribute(businessObject.getSimpleName(), field.getName(), typeField);
-
-                    attributeDefinition.isForeignKey = field.isCollection();
-                    if (field instanceof SimpleField) {
+                        attributeDefinition = businessDefinition.getInstanceAttribute(businessObject.getSimpleName(), field.getName(), typeField, field.isCollection());
                         attributeDefinition.length = ((SimpleField) field).getLength();
+                    } else if (field instanceof RelationField)
+                    {
+                        typeField= TYPECOLUMN.RELATION;
+                        attributeDefinition = businessDefinition.getInstanceRelationAttribute(businessObject.getSimpleName(), field.getName(), ((RelationField)field).getReference().getSimpleName(), field.isCollection());
+                        
+                    } else
+                    {
+                        typeField = TYPECOLUMN.STRING;
+                        attributeDefinition = businessDefinition.getInstanceAttribute(businessObject.getSimpleName(), field.getName(), typeField, field.isCollection());
                     }
 
+
+                 
                     businessDefinition.result.addListResultsetColumFromAttribute(attributeDefinition);
                     standard.getInstanceSelectionParameter(attributeDefinition.name, attributeDefinition.type);
                     // then one find per standard column
