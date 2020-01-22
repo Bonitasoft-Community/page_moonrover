@@ -1,0 +1,22 @@
+Queensland:
+try {
+			SessionAccessor sessionAccessor = ServiceAccessorFactory.getInstance().createSessionAccessor();
+			long tenantId = sessionAccessor.getTenantId();
+			TenantServiceAccessor tenantServiceAccessor = TenantServiceSingleton.getInstance(tenantId);
+			UserTransactionService userTransactionService = tenantServiceAccessor.getUserTransactionService();
+			
+			userTransactionService.executeInTransaction(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					BusinessDataRepository businessDataRepository = tenantServiceAccessor.getBusinessDataRepository();
+					BusinessObject1 businessObject1 = new BusinessObject1();
+					businessObject1.setAttribute1("attribute1");
+	
+					Entity businessObject1AfterPersist = businessDataRepository.merge(ServerProxyfier.unProxy(businessObject1));
+					LOGGER.info("businessObject1AfterPersist: " + businessObject1AfterPersist);
+					return null;
+				}
+			});
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		}

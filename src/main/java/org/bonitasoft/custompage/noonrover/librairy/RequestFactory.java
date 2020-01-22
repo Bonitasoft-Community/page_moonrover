@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI.ParameterSource;
-import org.bonitasoft.ext.properties.BonitaProperties;
+import org.bonitasoft.properties.BonitaProperties;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
 import org.bonitasoft.log.event.BEventFactory;
