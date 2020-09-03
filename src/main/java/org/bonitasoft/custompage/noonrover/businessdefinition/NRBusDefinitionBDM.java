@@ -189,7 +189,7 @@ java.lang.IllegalArgumentException: Unknown entity: com.airtahitinui.bpm.TNWaive
             long tenantId) {
         String message = "";
         boolean forceDeploy = false;
-        File fileJar = new File(pageDirectory.getAbsolutePath() + "/lib/CustomPageMoonRover-1.0.jar");;
+        File fileJar = new File(pageDirectory.getAbsolutePath() + "/lib/CustomPageMoonRover-2.3.0.jar");;
         String signature = getSignature(fileJar);
 
         message += "CommandFile[" + fileJar.getAbsolutePath() + "],Signature[" + signature + "]";
@@ -270,8 +270,8 @@ java.lang.IllegalArgumentException: Unknown entity: com.airtahitinui.bpm.TNWaive
          */
         // execute the meteor command
         jarDependencies.add(getInstanceJarDependencyCommand(fileJar.getName(), pageDirectory));
-        jarDependencies.add(getInstanceJarDependencyCommand("bonita-event-1.1.0.jar", pageDirectory));
-        jarDependencies.add(getInstanceJarDependencyCommand("bonita-properties-1.6.jar", pageDirectory));
+        jarDependencies.add(getInstanceJarDependencyCommand("bonita-event-1.7.0.jar", pageDirectory));
+        jarDependencies.add(getInstanceJarDependencyCommand("bonita-properties-2.4.0.jar", pageDirectory));
 
         String message = "";
 

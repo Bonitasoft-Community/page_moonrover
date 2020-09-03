@@ -37,7 +37,7 @@
 <!--  Page Directory: @_PAGEDIRECTORY_@ -->
 <center>
 	<table><tr><td><h1>Moon Rover</h1></td><td rowspan="2"><img src="pageResource?page=custompage_moonrover&location=img/moonrover.jpg" width="150" heigth="150" /></td></tr>
-		<tr><td style="font-size:0.8em">2.2</td></tr>
+		<tr><td style="font-size:0.8em">2.3</td></tr>
 	</table>
 </center>
 
@@ -69,6 +69,9 @@
 					<input ng-show="record.type=='STRING'" ng-model="record.value" size="40">
 					<input ng-show="record.type=='NUM'" ng-model="record.value" type="number">
 					<input ng-show="record.type=='DATE'" ng-model="record.value" type="date">
+					Value=
+					{{record.value}}
+					
 					<div ng-show="record.type=='BOOLEAN' ">
 						<select ng-model="record.value">
 							<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
@@ -138,455 +141,449 @@
 	
  	<!--  --------------------------------  FORM ---------------------------- --> 
 	<div class="col-lg-12" ng-show="moonctrl.display.showformsection">
-		<legend class="text-primary"><span class="glyphicon glyphicon-th"></span>Form</legend>
-
-		<div class="col-lg-12" ng-show="moonctrl.getListRequests()==0 && moonctrl.isinitialised">
-			No form is available. Contact your administrator to create form and give access to you
-		</div>
-		
-		<div class="col-lg-6" ng-show="moonctrl.getListRequests().length > 0" >
-			Choose your form: <select ng-model="moonctrl.form.requestname" ng-change="moonctrl.setForm()" >
-				<option ng-repeat="item in moonctrl.getListRequests()" value="{{item.name}}" ng-selected="item.name == moonctrl.form.requestname">{{item.name}}</option>
-			</select>
-		</div>
-		<div class="col-lg-6"  ng-show="moonctrl.getListRequests().length >0 && moonctrl.form.requestname !==''">
-			<div class="alert alert-info">
-				{{moonctrl.form.description}}
-			</div>
-		</div>
-		
-		
-		<div ng-show="moonctrl.inprogress">
-			<span class="Loading">.</span>Please wait, work in progress
-		</div>
-			
-		
-		<div style="padding: 10px 10px 20px 20px">
-	
-					<table class="table table-striped table-hover table-condensed">
-					<tbody ng-repeat="fieldParameter in moonctrl.getListFormParameters() track by $index" >
-					<tr ng-show="moonctrl.isFormFieldVisible( fieldParameter )">
-						<td>{{fieldParameter.name}}</td>
-						<td  style="text-align: center;" ng-show="moonctrl.request.selection.type=='STD'">
-							<select ng-model="fieldParameter.operator"  >
-								<option ng-repeat="item in moonctrl.getListOperator(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.operator">{{item.name}}</option>
-							</select>
-						</td>
-						<td>
-	
-							<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.value"	size="{{fieldParameter.length}}">
-							<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
-							<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
-	
-							<div ng-show="fieldParameter.type =='SELECT' ">
-								<select ng-model="fieldParameter.value">
-									<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
-								</select>
-							</div>
-							<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
-								<select ng-model="fieldParameter.value">
-									<option ng-repeat="operator  in searchmoonctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
-								</select>
-							</div>
-							<div ng-show="fieldParameter.type =='BOOLEAN' ">
-								<select ng-model="fieldParameter.value">
-								<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
-								</select>
-							</div>
-	        			</td>
-	        			<td>
-							<div ng-show="fieldParameter.operator == 'RANGE'">
-							To &nbsp;
-								<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.valueTo"	size="{{fieldParameter.length}}">
-								<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
-								<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
-		
-								<div ng-show="fieldParameter.type =='SELECT' ">
-									<select ng-model="fieldParameter.valueTo">
-										<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
-									</select>
-								</div>
-								<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
-									<select ng-model="fieldParameter.valueTo">
-										<option ng-repeat="operator  in searchmoonctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
-									</select>
-								</div>
-								<div ng-show="fieldParameter.type =='BOOLEAN' ">
-									<select ng-model="fieldParameter.valueTo">
-									<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
-									</select>
-								</div>
-							
-							</div>
-	        			</td>
-	      			</td>
-	        		</tr>
-	        		</tbody>
-					</table>
-
-							
-			</div>
-	</div>
- 
- 
- 
- 	<!--  --------------------------------  FILTER ---------------------------- --> 
-	<div class="col-lg-12" ng-show="moonctrl.display.isadmin">
-		<legend class="text-primary"><span class="glyphicon glyphicon-th"></span>
-		
-		<a href="#" ng-click="moonctrl.display.showfilter= ! moonctrl.display.showfilter" style="text-decoration:none">					
-  				<span ng-show="moonctrl.display.showfilter" class="glyphicon glyphicon-chevron-down" style="font-size: 18px;"></span>
- 				</a>
-			<a href="#" ng-click="moonctrl.display.showfilter = ! moonctrl.display.showfilter" style="text-decoration:none">					
-				<span ng-show="! moonctrl.display.showfilter" class="glyphicon glyphicon-chevron-right"  style="font-size: 18px;"></span>
-			</a>
-			
-		Filter</legend>
-	</div>
-
-	<div ng-show="moonctrl.display.showfilter && moonctrl.display.isadmin"><!--  FILTER section -->
-		<div class="col-lg-8" ng-show="moonctrl.display.showfilter">
-		<table class="table  table-condensed" width="100%" >
-			<tr>
-				<td>
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				Form <span class="glyphicon glyphicon-cog" title="Show parameters" ng-if="moonctrl.display.isadmin" ng-click="moonctrl.display.showfilter= ! moonctrl.display.showfilter"></span>
 				
+			</div>
+			<div class="panel-body">
+				<div class="col-lg-12" ng-show="moonctrl.getListRequests()==0 && moonctrl.isinitialised">
+					No form is available. Contact your administrator to create form and give access to you
+				</div>
+		
+				<div ng-show="moonctrl.getListRequests().length > 0" >
+					<div class="col-lg-6"  >
+						Choose your form: <select ng-model="moonctrl.form.requestname" ng-change="moonctrl.setForm()" >
+							<option ng-repeat="item in moonctrl.getListRequests()" value="{{item.name}}" ng-selected="item.name == moonctrl.form.requestname">{{item.name}}</option>
+						</select>
+					</div>
+					<div class="col-lg-6"  ng-show="moonctrl.form.requestname !==''">
+						<div class="alert alert-info">
+							{{moonctrl.form.description}}
+						</div>
+					</div>
+			
+			
 					<div ng-show="moonctrl.inprogress">
 						<span class="Loading">.</span>Please wait, work in progress
 					</div>
-					Source: <select ng-model="moonctrl.request.sourcename" ng-change="moonctrl.setSource()" >
-						<option ng-repeat="item in moonctrl.getListSources()" value="{{item.sourcename}}" ng-selected="item.sourcename == moonctrl.request.sourcename">{{item.displayname}}</option>
-					</select>
-	
-					<div ng-bind-html="moonctrl.getListEvents(moonctrl.definition.listevents )"></div>
-				</td>
-				<td>
-					<table>
-						<tr>
-							<td><span style="font-size: small;font-style:italic">Advanced configuration:</span></td>
-							<td>
-								<label class="switch">
-	  								<input type="checkbox" ng-model="moonctrl.display.showadvance">
-	  								<span class="slider round"></span>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td><span style="font-size: small;font-style:italic">Hide filter at execution:</span></td>
-							<td>
-								<label class="switch">
-						  			<input type="checkbox" ng-model="moonctrl.display.hidefilteratexecution">
-						  			<span class="slider round"></span>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td><span style="font-size: small;font-style:italic">Show form section:</span></td>
-							<td>
-								<label class="switch">
-						  			<input type="checkbox" ng-model="moonctrl.display.showformsection">
-						  			<span class="slider round"></span>
-								</label>
-							</td>
-						</tr>
-					</table>
-
-
-							
-					<div class="alert alert-defaut">
-						<table><tr ng-show="moonctrl.display.showadvance"><td>Source:</td><td>{{moonctrl.request.source.sourcename}}</td></tr>
-							<tr ng-show="moonctrl.display.showadvance"><td>Type:</td><td>{{moonctrl.request.source.type}}</td></tr>
-							<tr><td ng-show="moonctrl.display.showadvance">Description:</td><td>{{moonctrl.request.source.description}}</td></tr>
-						</table>
-					</div>
-				</td>
-				
-			</tr>
-		</table>
-		</div>
-	
-		<div class="col-lg-4" ng-show="moonctrl.display.showfilter">
-		<div class="panel panel-warning"  ng-show="moonctrl.display.showadvance" >
-			<div class="panel-heading">
-				Save
-			</div>
-			<div>
-				<table style="width:100%">
-					<tr>
-						<td>Save As:</td><td><input type="text" ng-model="moonctrl.saveinfo.name" maxlength="30"/></td>
-					</tr>
-					<tr>
-						<td>Description:</td><td> <input type="text" ng-model="moonctrl.saveinfo.description"  maxlength="50"/></td>
-					</tr>
-					<tr>
-						<td colspan="2" style="text-align:center"><button class="btn btn-success" ng-click="moonctrl.saveRequest();" ng-disabled="moonctrl.inprogress || moonctrl.request.sourcename==''">Save</button></td>
-					</tr>
-					<tr>
-						<td colspan="2"> <div ng-bind-html="moonctrl.getListEvents(moonctrl.saveinfo.listevents )"></div></td>
-					</tr>
-				</table>
-				
-				<div  style="padding: 10px 10px 20px 20px">
-					<table class="table table-striped table-hover table-condensed">
-						<tr>
-							<th>Name</th>
-							<th>Description</th>
-							<!-- <th>Authorization</th> -->
-							<th>Action</th>
-						</tr>
-						<tr ng-repeat="item in moonctrl.getListRequests()">
-							<td>{{item.name}}</td>
-							<td>{{item.description}}</td>
-							<td><button  class="btn btn-info btn-xs" ng-click="moonctrl.loadRequest(item)" >Load</button>
-								&nbsp;<button  class="btn btn-danger btn-xs" ng-click="moonctrl.deleteRequest(item.name)" ><span class="glyphicon glyphicon-remove" aria-hidden="true" style="color: white;"></span>Remove</button>
-							</td>
-						</tr>
-					</table>
-				</div>
-	
-			</div>
-		</div>
-		</div>
-		
-		
-	
-	
-		<!--  SELECTION (COLUMNS  (moonctrl.request.selection & moonctrl.request.selection ) -->
-		<div class="col-lg-6">
-		<div class="panel panel-info" >
-			<div class="panel-heading">
-				Selection
-			</div>
-			<div>
-				Selection : <select ng-model="moonctrl.request.selection_name" ng-change="moonctrl.setSelection()" > >
-					<option ng-repeat="item in moonctrl.getListSelection()" value="{{item.name}}" ng-selected="item.name == moonctrl.request.selection.name">{{item.name}}</option>
-				</select>
-	
-				<!-- 
-				<div class="alert alert-warning"">{{moonctrl.request.selection}}<p>
-				{{moonctrl.getListParameters()}}</div>
-				 -->
-				<div ng-show="moonctrl.request.selection.type==='SQL'" style="padding: 10px 10px 20px 20px">
-					Sql Request<br>
-					<textarea ng-model="moonctrl.request.selection.sqltext" rows="4" cols="80" maxlength="2000"></textarea>
-					<br>
-					Parameters (use the marker :parameterName in the request, no blanck):
-						<table class="table">
-							<tr>
-							<td>	
-								<table class="table table-striped table-hover table-condensed">
-									<tr>
-										<th>Name (no blanck)</th>
-										<th>Value</th>
-										<th>Type</th>
-										<th></th>
-									</tr>
-									<tbody ng-repeat="sqlParam in moonctrl.getListSqlParameters() track by $index" >
-									<tr>
-										<td>
-											<input ng-model="sqlParam.name" type="text" maxlength="30"/>
-										</td>
-										<td>
-											<!--  angularJS does not allow to have here the same name for the numeric value and the string value -->
-											<input ng-show="sqlParam.type =='NUM'" type="number" ng-model="sqlParam.value"/>
-											<input ng-show="sqlParam.type =='STRING'" type="text" ng-model="sqlParam.value"	maxlength="30"/>
-							
-										</td>
-										<td>
-											<select ng-model="sqlParam.type"  >
-												<option ng-repeat="item in moonctrl.getListTypesField()" value="{{item.value}}" ng-selected="item.value == sqlParam.type">{{item.name}}</option>
-											</select>
 						
-										</td>
-										<td>
-											<button  class="btn btn-danger btn-xs" ng-click="moonctrl.deleteSqlParameter( sqlParam.index)" ><span class="glyphicon glyphicon-remove" aria-hidden="true" style="color: white;"></span>Remove</button>
-										</td>										
-									</tr>
-									</tbody>				
-								</table>
+					
+					<div style="padding: 10px 10px 20px 20px" ng-show="moonctrl.form.requestname !==''">
+				
+						<table class="table table-striped table-hover table-condensed">
+						<tbody ng-repeat="fieldParameter in moonctrl.getListFormParameters() track by $index" >
+						<tr ng-show="moonctrl.isFormFieldVisible( fieldParameter )">
+							<td>{{fieldParameter.name}}</td>
+							<td  style="text-align: center;" ng-show="moonctrl.request.selection.type=='STD'">
+								<select ng-model="fieldParameter.operator"  >
+									<option ng-repeat="item in moonctrl.getListOperator(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.operator">{{item.name}}</option>
+								</select>
 							</td>
-							<td style="vertical-align:top">
-								<button ng-click=" moonctrl.addSqlParameter()" class="btn btn-primary btn-xs">Add Parameters</button>
-							</td>
-						</tr>
-						</table>
-				</div>
-				<div ng-show="! (moonctrl.request.selection.type==='SQL')" style="padding: 10px 10px 20px 20px">
-	
-	
-					<table class="table table-striped table-hover table-condensed">
-					<tr ng-show="moonctrl.display.showadvance">
-					<td colspan="3"></td>
-					<td >
-						 <button ng-click="moonctrl.request.selection.showAll=true" ng-class="moonctrl.getButtonClass(moonctrl.request.selection.showAll)" ng-disabled="moonctrl.request.selection.showAll===true">Show all</button>
-						 <button ng-click="moonctrl.request.selection.showAll=false" ng-class="moonctrl.getButtonClass( ! moonctrl.request.selection.showAll)" ng-disabled="moonctrl.request.selection.showAll===false">Show only active</button><br>
-						 <button ng-click="moonctrl.selectAllParameters( true, moonctrl.request.selection.parameters )" class="btn btn-default btn-xs" >Select all</button>
-						 <button ng-click="moonctrl.selectAllParameters( false, moonctrl.request.selection.parameters )" class="btn btn-default  btn-xs" >Unselect</button>
-					</td>
-					<td></td>
-					</tr>
-					<tr  ng-show="moonctrl.display.showadvance">
-						<th style="text-align: center;">Parameter</th>
-						<th style="text-align: center;" ng-show="moonctrl.request.selection.type=='STD'">Operator</th>
-						<th style="text-align: center;" colspan="2">Value</th>
-						<th style="text-align: center;" ng-show="moonctrl.display.showadvanceced">Visible</th>
-					</tr>
-					<tbody ng-repeat="fieldParameter in moonctrl.getListParameters() track by $index" >
-					<tr ng-show="moonctrl.isSelectionFieldVisible( fieldParameter )">
-						<td>{{fieldParameter.name}}</td>
-						<td  style="text-align: center;" ng-show="moonctrl.request.selection.type=='STD'">
-							<select ng-model="fieldParameter.operator"  >
-								<option ng-repeat="item in moonctrl.getListOperator(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.operator">{{item.name}}</option>
-							</select>
-						</td>
-						<td>
-	
-							<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.value"	size="{{fieldParameter.length}}">
-							<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
-							<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
-	
-							<div ng-show="fieldParameter.type =='SELECT' ">
-								<select ng-model="fieldParameter.value">
-									<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
-								</select>
-							</div>
-							<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
-								<select ng-model="fieldParameter.value">
-									<option ng-repeat="operator  in searchmoonctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
-								</select>
-							</div>
-							<div ng-show="fieldParameter.type =='BOOLEAN' ">
-								<select ng-model="fieldParameter.value">
-								<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
-								</select>
-							</div>
-	        			</td>
-	        			<td>
-							<div ng-show="fieldParameter.operator == 'RANGE'">
-								To &nbsp;<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.valueTo"	size="{{fieldParameter.length}}">
-								<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
-								<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
+							<td>
+		
+								<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.value"	size="{{fieldParameter.length}}">
+								<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
+								<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
 		
 								<div ng-show="fieldParameter.type =='SELECT' ">
-									<select ng-model="fieldParameter.valueTo">
+									<select ng-model="fieldParameter.value">
 										<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
 									</select>
 								</div>
 								<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
-									<select ng-model="fieldParameter.valueTo">
+									<select ng-model="fieldParameter.value">
 										<option ng-repeat="operator  in searchmoonctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
 									</select>
 								</div>
 								<div ng-show="fieldParameter.type =='BOOLEAN' ">
-									<select ng-model="fieldParameter.valueTo">
-										<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
+									<select ng-model="fieldParameter.value">
+									<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
 									</select>
 								</div>
+		        			</td>
+		        			<td>
+								<div ng-show="fieldParameter.operator == 'RANGE'">
+								To &nbsp;
+									<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.valueTo"	size="{{fieldParameter.length}}">
+									<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
+									<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
+			
+									<div ng-show="fieldParameter.type =='SELECT' ">
+										<select ng-model="fieldParameter.valueTo">
+											<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
+										</select>
+									</div>
+									<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
+										<select ng-model="fieldParameter.valueTo">
+											<option ng-repeat="operator  in searchmoonctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
+										</select>
+									</div>
+									<div ng-show="fieldParameter.type =='BOOLEAN' ">
+										<select ng-model="fieldParameter.valueTo">
+										<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
+										</select>
+									</div>
+								
+								</div>
+		        			</td>
+		      			</td>
+		        		</tr>
+		        		</tbody>
+						</table>
+		
+					</div>					
+				</div> <!--  end there is a form -->
+			</div> <!--  end panel body -->
+		</div> <!--  end panel info -->
+ 	</div> <!--  end panel -->
+ 
+ 
+ 	<!--  --------------------------------  FORM BUILDER ---------------------------- --> 
+	<div class="col-lg-12" ng-show="moonctrl.display.isadmin">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				<a href="#" ng-click="moonctrl.display.showfilter= ! moonctrl.display.showfilter" style="text-decoration:none">					
+		  				<span ng-show="moonctrl.display.showfilter" class="glyphicon glyphicon-chevron-down" style="font-size: 18px;"></span>
+ 				</a>
+				<a href="#" ng-click="moonctrl.display.showfilter = ! moonctrl.display.showfilter" style="text-decoration:none">					
+					<span ng-show="! moonctrl.display.showfilter" class="glyphicon glyphicon-chevron-right"  style="font-size: 18px;"></span>
+				</a>
+			Form Builder
+			</div>
+		<div class="panel-body" ng-show="moonctrl.display.showfilter && moonctrl.display.isadmin">
+			<div class="col-lg-8">
+				<table class="table  table-condensed" width="100%" >
+				<tr>
+					<td>
+					
+						<div ng-show="moonctrl.inprogress">
+							<span class="Loading">.</span>Please wait, work in progress
+						</div>
+						Source: <select ng-model="moonctrl.request.sourcename" ng-change="moonctrl.setSource()" >
+							<option ng-repeat="item in moonctrl.getListSources()" value="{{item.sourcename}}" ng-selected="item.sourcename == moonctrl.request.sourcename">{{item.displayname}}</option>
+						</select>
+		
+						<div ng-bind-html="moonctrl.getListEvents(moonctrl.definition.listevents )"></div>
+					</td>
+					<td>
+						<table>
+							<tr>
+								<td><span style="font-size: small;font-style:italic">Advanced configuration:</span></td>
+								<td>
+									<label class="switch">
+		  								<input type="checkbox" ng-model="moonctrl.display.showadvance">
+		  								<span class="slider round"></span>
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td><span style="font-size: small;font-style:italic">Hide filter at execution:</span></td>
+								<td>
+									<label class="switch">
+							  			<input type="checkbox" ng-model="moonctrl.display.hidefilteratexecution">
+							  			<span class="slider round"></span>
+									</label>
+								</td>
+							</tr>
 							
-							</div>
-	        			</td>
-	        			<td ng-show="moonctrl.display.showadvance"><input type="checkbox" ng-model="fieldParameter.visible"></input></td>
-	      			</td>
-	        		</tr>
-	        		</tbody>
+						</table>
+	
+	
+								
+						<div class="alert alert-defaut">
+							<table><tr ng-show="moonctrl.display.showadvance"><td>Source:</td><td>{{moonctrl.request.source.sourcename}}</td></tr>
+								<tr ng-show="moonctrl.display.showadvance"><td>Type:</td><td>{{moonctrl.request.source.type}}</td></tr>
+								<tr><td ng-show="moonctrl.display.showadvance">Description:</td><td>{{moonctrl.request.source.description}}</td></tr>
+							</table>
+						</div>
+					</td>
+					
+				</tr>
+			</table>
+			</div>
+	
+			<div class="col-lg-4" ng-show="moonctrl.display.showfilter">
+			<div class="panel panel-warning"  ng-show="moonctrl.display.showadvance" >
+				<div class="panel-heading">
+					Save
+				</div>
+				<div>
+					<table style="width:100%">
+						<tr>
+							<td>Save As:</td><td><input type="text" ng-model="moonctrl.saveinfo.name" maxlength="30"/></td>
+						</tr>
+						<tr>
+							<td>Description:</td><td> <input type="text" ng-model="moonctrl.saveinfo.description"  maxlength="50"/></td>
+						</tr>
+						<tr>
+							<td colspan="2" style="text-align:center"><button class="btn btn-success" ng-click="moonctrl.saveRequest();" ng-disabled="moonctrl.inprogress || moonctrl.request.sourcename==''">Save</button></td>
+						</tr>
+						<tr>
+							<td colspan="2"> <div ng-bind-html="moonctrl.getListEvents(moonctrl.saveinfo.listevents )"></div></td>
+						</tr>
 					</table>
 					
-					<!--  order ? -->
-					<div ng-show="moonctrl.request.selection.type=='STD'">
-						Order by:
-						<table class="table">
+					<div  style="padding: 10px 10px 20px 20px">
+						<table class="table table-striped table-hover table-condensed">
 							<tr>
-							<td>	
-								<table class="table table-striped table-hover table-condensed">
-									<tr>
-										<th>Column</th>
-										<th>Direction</th>
-									</tr>
-									<tbody ng-repeat="fieldOrder in moonctrl.getListColumnsOrders() track by $index" >
-									<tr>
-										<td>
-											<select ng-model="fieldOrder.columnid">
-												<option ng-repeat="item in moonctrl.getListColumnsResult()" value="{{item.name}}" ng-selected="item.name == fieldOrder.columnid">{{item.name}}</option>
-											</select>
-										</td>
-										<td>
-											<select ng-model="fieldOrder.direction">
-												<option ng-repeat="item in moonctrl.getListOrderDirection(fieldOrder)" value="{{item.value}}" ng-selected="item.value == fieldOrder.direction">{{item.name}}</option>
-											</select>
-											</td>
-									</tr>
-									</tbody>				
-								</table>
-							</td>
-							<td style="vertical-align:top">
-								<button ng-click=" moonctrl.addColumnsOrder()" class="btn btn-primary btn-xs">Add orderBy</button>
-							</td>
-						</tr>
+								<th>Name</th>
+								<th>Description</th>
+								<!-- <th>Authorization</th> -->
+								<th>Action</th>
+							</tr>
+							<tr ng-repeat="item in moonctrl.getListRequests()">
+								<td>{{item.name}}</td>
+								<td>{{item.description}}</td>
+								<td><button  class="btn btn-info btn-xs" ng-click="moonctrl.loadRequest(item)" >Load</button>
+									&nbsp;<button  class="btn btn-danger btn-xs" ng-click="moonctrl.deleteRequest(item.name)" ><span class="glyphicon glyphicon-remove" aria-hidden="true" style="color: white;"></span>Remove</button>
+								</td>
+							</tr>
 						</table>
-					
 					</div>
 				</div>
 			</div>
-		</div>
-		</div> <!--  end Selection -->
-	
-	
-		<!-- ---------------------------------------- RESULT COLUMNS  (moonctrl.request.columns ) -->
-		<div class="col-lg-6" ng-show="moonctrl.display.showadvance">
-		<div class="panel panel-info" >
-			<div class="panel-heading">Result</div>
-	
-	
-			<!--  <div class="alert alert-success">{{moonctrl.request | json}}</div> -->
-	 
-			<div style="padding: 10px 10px 20px 20px" ng-show="! (moonctrl.request.selection.type==='SQL')">
-				<table class="table table-striped table-hover table-condensed">
-					<tr>
-						<td colspan="1"></td>
-						<td>
-							 <button ng-click="moonctrl.request.result.showAll=true" ng-class="moonctrl.getButtonClass(moonctrl.request.result.showAll)" ng-disabled="moonctrl.request.result.showAll === true">Show all</button>
-							 <button ng-click="moonctrl.request.result.showAll=false" ng-class="moonctrl.getButtonClass( ! moonctrl.request.result.showAll)"" ng-disabled="moonctrl.request.result.showAll === false">Show only visible</button><br>
-							 <button ng-click="moonctrl.selectAllParameters( true,  moonctrl.request.result.columns )" class="btn btn-default btn-xs" >Select all</button>
-							 <button ng-click="moonctrl.selectAllParameters( false, moonctrl.request.result.columns )" class="btn btn-default  btn-xs" >Unselect</button>
-						</td>
-						<td colspan="2"></td>
-	
-					</tr>
-					<tr>
-						<th style="text-align: center;">Column</th>
-						<th style="text-align: center;">Visible</th>
-						<th style="text-align: center;">Group By</th>
-						<th style="text-align: center;">Sum</th>
-					</tr>
-					 <tbody ng-repeat="fieldResult in moonctrl.getListColumnsResult() track by $index" >
-					 	<tr ng-show="(! moonctrl.request.result.showAll && fieldResult.visible) || moonctrl.request.result.showAll">
-							<td>{{fieldResult.name}}</td>
-						 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.visible"></input></td>
-						 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.groupby"></input></td>
-						 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.sum"></input></td>
-	      				</tr>
-	      			</tbody>
-				</table>
-			</div>
-			<div>
-				<!--  list or graph ?  -->
-
-				Type of result <select ng-model="moonctrl.request.result.typeresult">
-					<option ng-repeat="item in moonctrl.getListTypeResult()" value="{{item.value}}" ng-selected="item.value == moonctrl.request.result.typeresult">{{item.name}}</option>
-				</select>
-
-			</div>
-		</div>
-		</div> <!--  end result -->
+			</div> <!--  end save -->
 		
+		
+	
+	
+			<!--  SELECTION (COLUMNS  (moonctrl.request.selection & moonctrl.request.selection ) -->
+			<div class="col-lg-6">
+			<div class="panel panel-info" >
+				<div class="panel-heading">
+					Selection
+				</div>
+				<div>
+					Selection : <select ng-model="moonctrl.request.selection_name" ng-change="moonctrl.setSelection()" > >
+						<option ng-repeat="item in moonctrl.getListSelection()" value="{{item.name}}" ng-selected="item.name == moonctrl.request.selection.name">{{item.name}}</option>
+					</select>
+		
+					<!-- 
+					<div class="alert alert-warning"">{{moonctrl.request.selection}}<p>
+					{{moonctrl.getListParameters()}}</div>
+					 -->
+					<div ng-show="moonctrl.request.selection.type==='SQL'" style="padding: 10px 10px 20px 20px">
+						Sql Request<br>
+						<textarea ng-model="moonctrl.request.selection.sqltext" rows="4" cols="80" maxlength="2000"></textarea>
+						<br>
+						Parameters (use the marker :parameterName in the request, no blanck):
+							<table class="table">
+								<tr>
+								<td>	
+									<table class="table table-striped table-hover table-condensed">
+										<tr>
+											<th>Name (no blanck)</th>
+											<th>Value</th>
+											<th>Type</th>
+											<th></th>
+										</tr>
+										<tbody ng-repeat="sqlParam in moonctrl.getListSqlParameters() track by $index" >
+										<tr>
+											<td>
+												<input ng-model="sqlParam.name" type="text" maxlength="30"/>
+											</td>
+											<td>
+												<!--  angularJS does not allow to have here the same name for the numeric value and the string value -->
+												<input ng-show="sqlParam.type =='NUM'" type="number" ng-model="sqlParam.value"/>
+												<input ng-show="sqlParam.type =='STRING'" type="text" ng-model="sqlParam.value"	maxlength="30"/>
+								
+											</td>
+											<td>
+												<select ng-model="sqlParam.type"  >
+													<option ng-repeat="item in moonctrl.getListTypesField()" value="{{item.value}}" ng-selected="item.value == sqlParam.type">{{item.name}}</option>
+												</select>
+							
+											</td>
+											<td>
+												<button  class="btn btn-danger btn-xs" ng-click="moonctrl.deleteSqlParameter( sqlParam.index)" ><span class="glyphicon glyphicon-remove" aria-hidden="true" style="color: white;"></span>Remove</button>
+											</td>										
+										</tr>
+										</tbody>				
+									</table>
+								</td>
+								<td style="vertical-align:top">
+									<button ng-click=" moonctrl.addSqlParameter()" class="btn btn-primary btn-xs">Add Parameters</button>
+								</td>
+							</tr>
+							</table>
+					</div>
+					<div ng-show="! (moonctrl.request.selection.type==='SQL')" style="padding: 10px 10px 20px 20px">
+		
+		
+						<table class="table table-striped table-hover table-condensed">
+						<tr ng-show="moonctrl.display.showadvance">
+						<td colspan="3"></td>
+						<td >
+							 <button ng-click="moonctrl.request.selection.showAll=true" ng-class="moonctrl.getButtonClass(moonctrl.request.selection.showAll)" ng-disabled="moonctrl.request.selection.showAll===true">Show all</button>
+							 <button ng-click="moonctrl.request.selection.showAll=false" ng-class="moonctrl.getButtonClass( ! moonctrl.request.selection.showAll)" ng-disabled="moonctrl.request.selection.showAll===false">Show only active</button><br>
+							 <button ng-click="moonctrl.selectAllParameters( true, moonctrl.request.selection.parameters )" class="btn btn-default btn-xs" >Select all</button>
+							 <button ng-click="moonctrl.selectAllParameters( false, moonctrl.request.selection.parameters )" class="btn btn-default  btn-xs" >Unselect</button>
+						</td>
+						<td></td>
+						</tr>
+						<tr  ng-show="moonctrl.display.showadvance">
+							<th style="text-align: center;">Parameter</th>
+							<th style="text-align: center;" ng-show="moonctrl.request.selection.type=='STD'">Operator</th>
+							<th style="text-align: center;" colspan="2">Value</th>
+							<th style="text-align: center;" ng-show="moonctrl.display.showadvanceced">Visible</th>
+						</tr>
+						<tbody ng-repeat="fieldParameter in moonctrl.getListParameters() track by $index" >
+						<tr ng-show="moonctrl.isSelectionFieldVisible( fieldParameter )">
+							<td>{{fieldParameter.name}}</td>
+							<td  style="text-align: center;" ng-show="moonctrl.request.selection.type=='STD'">
+								<select ng-model="fieldParameter.operator"  >
+									<option ng-repeat="item in moonctrl.getListOperator(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.operator">{{item.name}}</option>
+								</select>
+							</td>
+							<td>
+		
+								<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.value"	size="{{fieldParameter.length}}">
+								<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
+								<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
+		
+								<div ng-show="fieldParameter.type =='SELECT' ">
+									<select ng-model="fieldParameter.value">
+										<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
+									</select>
+								</div>
+								<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
+									<select ng-model="fieldParameter.value">
+										<option ng-repeat="operator  in searchmoonctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
+									</select>
+								</div>
+								<div ng-show="fieldParameter.type =='BOOLEAN' ">
+									<select ng-model="fieldParameter.value">
+									<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
+									</select>
+								</div>
+		        			</td>
+		        			<td>
+								<div ng-show="fieldParameter.operator == 'RANGE'">
+									To &nbsp;<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.valueTo"	size="{{fieldParameter.length}}">
+									<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
+									<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
+			
+									<div ng-show="fieldParameter.type =='SELECT' ">
+										<select ng-model="fieldParameter.valueTo">
+											<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
+										</select>
+									</div>
+									<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
+										<select ng-model="fieldParameter.valueTo">
+											<option ng-repeat="operator  in searchmoonctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
+										</select>
+									</div>
+									<div ng-show="fieldParameter.type =='BOOLEAN' ">
+										<select ng-model="fieldParameter.valueTo">
+											<option ng-repeat="item in moonctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
+										</select>
+									</div>
+								
+								</div>
+		        			</td>
+		        			<td ng-show="moonctrl.display.showadvance"><input type="checkbox" ng-model="fieldParameter.visible"></input></td>
+		      			</td>
+		        		</tr>
+		        		</tbody>
+						</table>
+						
+						<!--  order ? -->
+						<div ng-show="moonctrl.request.selection.type=='STD'">
+							Order by:
+							<table class="table">
+								<tr>
+								<td>	
+									<table class="table table-striped table-hover table-condensed">
+										<tr>
+											<th>Column</th>
+											<th>Direction</th>
+										</tr>
+										<tbody ng-repeat="fieldOrder in moonctrl.getListColumnsOrders() track by $index" >
+										<tr>
+											<td>
+												<select ng-model="fieldOrder.columnid">
+													<option ng-repeat="item in moonctrl.getListColumnsResult()" value="{{item.name}}" ng-selected="item.name == fieldOrder.columnid">{{item.name}}</option>
+												</select>
+											</td>
+											<td>
+												<select ng-model="fieldOrder.direction">
+													<option ng-repeat="item in moonctrl.getListOrderDirection(fieldOrder)" value="{{item.value}}" ng-selected="item.value == fieldOrder.direction">{{item.name}}</option>
+												</select>
+												</td>
+										</tr>
+										</tbody>				
+									</table>
+								</td>
+								<td style="vertical-align:top">
+									<button ng-click=" moonctrl.addColumnsOrder()" class="btn btn-primary btn-xs">Add orderBy</button>
+								</td>
+							</tr>
+							</table>
+						
+						</div>
+					</div>
+				</div>
+			</div>
+			</div> <!--  end Selection -->
+	
+	
+			<!-- ---------------------------------------- RESULT COLUMNS  (moonctrl.request.columns ) -->
+			<div class="col-lg-6" ng-show="moonctrl.display.showadvance">
+			<div class="panel panel-info" >
+				<div class="panel-heading">Result</div>
+		
+		
+				<!--  <div class="alert alert-success">{{moonctrl.request | json}}</div> -->
+		 
+				<div style="padding: 10px 10px 20px 20px" ng-show="! (moonctrl.request.selection.type==='SQL')">
+					<table class="table table-striped table-hover table-condensed">
+						<tr>
+							<td colspan="1"></td>
+							<td>
+								 <button ng-click="moonctrl.request.result.showAll=true" ng-class="moonctrl.getButtonClass(moonctrl.request.result.showAll)" ng-disabled="moonctrl.request.result.showAll === true">Show all</button>
+								 <button ng-click="moonctrl.request.result.showAll=false" ng-class="moonctrl.getButtonClass( ! moonctrl.request.result.showAll)"" ng-disabled="moonctrl.request.result.showAll === false">Show only visible</button><br>
+								 <button ng-click="moonctrl.selectAllParameters( true,  moonctrl.request.result.columns )" class="btn btn-default btn-xs" >Select all</button>
+								 <button ng-click="moonctrl.selectAllParameters( false, moonctrl.request.result.columns )" class="btn btn-default  btn-xs" >Unselect</button>
+							</td>
+							<td colspan="2"></td>
+		
+						</tr>
+						<tr>
+							<th style="text-align: center;">Column</th>
+							<th style="text-align: center;">Visible</th>
+							<th style="text-align: center;">Group By</th>
+							<th style="text-align: center;">Sum</th>
+						</tr>
+						 <tbody ng-repeat="fieldResult in moonctrl.getListColumnsResult() track by $index" >
+						 	<tr ng-show="(! moonctrl.request.result.showAll && fieldResult.visible) || moonctrl.request.result.showAll">
+								<td>{{fieldResult.name}}</td>
+							 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.visible"></input></td>
+							 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.groupby"></input></td>
+							 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.sum"></input></td>
+		      				</tr>
+		      			</tbody>
+					</table>
+				</div>
+				<div>
+					<!--  list or graph ?  -->
+	
+					Type of result <select ng-model="moonctrl.request.result.typeresult">
+						<option ng-repeat="item in moonctrl.getListTypeResult()" value="{{item.value}}" ng-selected="item.value == moonctrl.request.result.typeresult">{{item.name}}</option>
+					</select>
+	
+				</div>
+			</div>
+			</div> <!--  end result -->
+		</div> <!--  end pagel -->
 	</div> <!--  end FILTER -->
 
 	<!--  --------------------------------  EXECUTION ---------------------------- -->
 	<div class="col-lg-12">
-		<legend class="text-primary"><span class="glyphicon glyphicon-th"></span>Result</legend>
 		<div ng-show="moonctrl.inprogress">
 			<span class="Loading">.</span>Please wait, work in progress
 		</div>
-		<button ng-click="moonctrl.runRequestConfiguration('')" class="btn btn-info" ng-disabled="moonctrl.inprogress || moonctrl.request.sourcename==''">Execute</button>
+		<button ng-click="moonctrl.runRequestConfiguration('')" class="btn btn-info" ng-disabled="moonctrl.inprogress || moonctrl.request.sourcename==''">Search</button>
 
 
 		<!--  result=<div class="alert alert-warning">{{moonctrl.result | json}}</div>

@@ -103,7 +103,7 @@ appCommand.controller('moonroverController',
 		//self.request.listsources = self.simulation.listsources; 
 		console.log("noonrover.loadSources");
 		var param={};
-		var json= encodeURIComponent( angular.toJson( param, true));
+		var json= encodeURIComponent( angular.toJson( param, false));
 		var d = new Date();
 		
 		var url='?page=custompage_moonrover&action=loadsources&paramjson='+json+'&t='+d.getTime();
@@ -308,7 +308,7 @@ appCommand.controller('moonroverController',
 	// Load
 	this.loadRequest = function( item ) {
 		var param={'name' : item.name };
-		var json= encodeURIComponent( angular.toJson( param, true));
+		var json= encodeURIComponent( angular.toJson( param, false));
 		var self=this;
 		self.saveinfo.name 					= item.name;
 		self.saveinfo.description 			= item.description;
@@ -342,7 +342,7 @@ appCommand.controller('moonroverController',
 		if (confirm("Would you like to delete this request?"))
 		{
 			var param={'name' : name };
-			var json= encodeURIComponent( angular.toJson( param, true));
+			var json= encodeURIComponent( angular.toJson( param, false));
 			var self=this;
 			self.inprogress						= true;
 			self.report.listevents ='';
@@ -369,7 +369,7 @@ appCommand.controller('moonroverController',
 	
 	this.listRequests = function() {
 		var param={};
-		var json= encodeURIComponent( angular.toJson( param, true));
+		var json= encodeURIComponent( angular.toJson( param, false));
 		var self=this;
 		self.inprogress						= true;
 		var d = new Date();
@@ -809,7 +809,7 @@ appCommand.controller('moonroverController',
 		//self.request.listsources = self.simulation.listsources; 
 		console.log("noonrover.init");
 		var param={};
-		var json= encodeURIComponent( angular.toJson( param, true));
+		var json= encodeURIComponent( angular.toJson( param, false));
 		var d = new Date();
 		
 		var url='?page=custompage_moonrover&action=init&paramjson='+json+'&t='+d.getTime();;
@@ -822,7 +822,7 @@ appCommand.controller('moonroverController',
 
 							self.saveinfo.listrequests = jsonResult.listrequests;
 							self.display.isadmin = jsonResult.isadmin;
-							self.display.showformsection = ! self.display.isadmin;
+							
 							
 							self.isinitialised = true;
 							
