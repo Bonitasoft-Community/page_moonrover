@@ -37,7 +37,7 @@
 <!--  Page Directory: @_PAGEDIRECTORY_@ -->
 <center>
 	<table><tr><td><h1>Moon Rover</h1></td><td rowspan="2"><img src="pageResource?page=custompage_moonrover&location=img/moonrover.jpg" width="150" heigth="150" /></td></tr>
-		<tr><td style="font-size:0.8em">2.3</td></tr>
+		<tr><td style="font-size:0.8em">2.3.1</td></tr>
 	</table>
 </center>
 
@@ -69,8 +69,6 @@
 					<input ng-show="record.type=='STRING'" ng-model="record.value" size="40">
 					<input ng-show="record.type=='NUM'" ng-model="record.value" type="number">
 					<input ng-show="record.type=='DATE'" ng-model="record.value" type="date">
-					Value=
-					{{record.value}}
 					
 					<div ng-show="record.type=='BOOLEAN' ">
 						<select ng-model="record.value">

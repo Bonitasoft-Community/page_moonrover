@@ -13,10 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.sql.DataSource;
-
 import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI;
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusAttribute;
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusDefinition;
@@ -29,6 +25,7 @@ import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusSetAttributes
 import org.bonitasoft.engine.session.APISession;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
+import org.bonitasoft.properties.BonitaEngineConnection;
 
 
 public class NRSourceDatabase extends NRSource {
@@ -310,33 +307,8 @@ public class NRSourceDatabase extends NRSource {
     /* -------------------------------------------------------------------- */
     public String datasourceName;
 
-    public static Connection getConnection() {
-        Context ctx = null;
-        try {
-            ctx = new InitialContext();
-        } catch (final Exception e) {
-            logger.info("Cant' get an InitialContext : can't access the datasource " + e.getMessage());
-            return null;
-        }
-
-        DataSource ds = null;
-        Connection con = null;
-        try {
-            ds = (DataSource) ctx.lookup("java:/comp/env/NotManagedBizDataDS");
-            con = ds.getConnection();
-            return con;
-        } catch (final Exception e) {
-            logger.info("Cant' get an connection : can't access the datasource: " + e.getMessage());
-        }
-        try {
-            if (ds == null) {
-                ds = (DataSource) ctx.lookup("java:jboss/datasources/NotManagedBizDataDS");
-                con = ds.getConnection();
-                return con;
-            }
-        } catch (final Exception e) {
-        } ;
-        return null;
+    public static Connection getConnection() throws SQLException {
+        return BonitaEngineConnection.getBusinessConnection();
     }
 
     public TYPECOLUMN getTypeFromJdbc(int jdbcType) {

@@ -8,6 +8,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.bonitasoft.custompage</groupId>
 	<artifactId>bonita-moonrover</artifactId>
+	<!--  ATTENTION, any modification here must be apply in NRBusDefinitionBDM.java -->
 	<version>2.3.1</version>
 
 	<dependencies>
@@ -17,6 +18,7 @@
 			<version>${bonita.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<!--  ATTENTION, any modification here must be apply in NRBusDefinitionBDM.java -->
 		<dependency>
 			<groupId>org.bonitasoft.log.event</groupId>
 			<artifactId>bonita-event</artifactId>
@@ -27,7 +29,11 @@
 			<artifactId>bonita-properties</artifactId>
 			<version>2.7.0</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.bonitasoft.command</groupId>
+			<artifactId>bonita-commanddeployment</artifactId>
+			<version>2.1.1</version>
+		</dependency>
 		<!-- <dependency> <groupId>org.bonitasoft.search</groupId> <artifactId>BonitaSearchRelation</artifactId> <version>1.0.0</version> </dependency> -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

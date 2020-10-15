@@ -3,6 +3,7 @@ package org.bonitasoft.custompage.noonrover.executor;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -141,7 +142,7 @@ public abstract class NRExecutor {
         throw new NRException(new BEvent(eventTypeNotFound, "typeSelection[" + type.toString() + "]"));
     }
 
-    public static Connection getConnection() {
+    public static Connection getConnection() throws SQLException {
         return NRSourceDatabase.getConnection();
     }
 
