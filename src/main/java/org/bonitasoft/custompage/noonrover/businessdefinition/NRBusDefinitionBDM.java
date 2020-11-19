@@ -12,7 +12,6 @@ import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI;
 import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI.ParameterSource;
 import org.bonitasoft.engine.api.CommandAPI;
 import org.bonitasoft.engine.api.PlatformAPI;
-import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.engine.api.TenantAPIAccessor;
 import org.bonitasoft.engine.bdm.model.BusinessObject;
 import org.bonitasoft.engine.service.TenantServiceAccessor;
@@ -84,7 +83,7 @@ java.lang.IllegalArgumentException: Unknown entity: com.airtahitinui.bpm.TNWaive
                         record.put((String) oneRecordParameter.get("name"), oneRecordParameter.get( "value"));
                     }
                 parameters.put(NRBusCmdControl.CST_RECORD, record);
-                
+                logger.info(logHeader+" Update BDM with record["+record+"]");
                 
                 Map<String, Object> resultUpdate= nrCommandAPI.callCommand(parameters,tenantId, commandAPI);
                 
@@ -108,11 +107,6 @@ java.lang.IllegalArgumentException: Unknown entity: com.airtahitinui.bpm.TNWaive
     }
     
     
-    
-  
-    
-  
-
     /**
      * 
      *
@@ -132,14 +126,7 @@ java.lang.IllegalArgumentException: Unknown entity: com.airtahitinui.bpm.TNWaive
         }
     }
 
-    /**
-     * @param name
-     * @param pageDirectory
-     * @return
-     */
-    private static JarDependencyCommand getInstanceJarDependencyCommand(final String name, File pageDirectory) {
-        return new JarDependencyCommand(name, pageDirectory);
-    }
+   
 
    
 }

@@ -33,14 +33,14 @@ public abstract class NRExecutor {
 
         // give a name to this execution
         public String name;
-        public List<BEvent> listEvents = new ArrayList<BEvent>();
-        public List<Map<String, Object>> listData = new ArrayList<Map<String, Object>>();
-        public List<Map<String, Object>> listHeader = new ArrayList<Map<String, Object>>();
-        public List<Map<String, Object>> listFooterData = new ArrayList<Map<String, Object>>();
+        public List<BEvent> listEvents = new ArrayList<>();
+        public List<Map<String, Object>> listData = new ArrayList<>();
+        public List<Map<String, Object>> listHeader = new ArrayList<>();
+        public List<Map<String, Object>> listFooterData = new ArrayList<>();
         /**
          * if the executor run a Sql request, it may keep the columnSet visible, and should match with the listData information
          */
-        public List<String> listColumnName = new ArrayList<String>();
+        public List<String> listColumnName = new ArrayList<>();
         /**
          * some executor can build from scratch the result
          */
@@ -82,16 +82,16 @@ public abstract class NRExecutor {
         }
 
         public Map<String, Object> getJson() {
-            Map<String, Object> result = new HashMap<String, Object>();
-            result.put("listevents", BEventFactory.getHtml(listEvents));
-            result.put("listdata", listData);
-            result.put("listheader", listHeader);
-            result.put("listfooterdata", listFooterData);
-            result.put(NoonRoverAccessAPI.cstJsonStartIndex, Long.valueOf(startIndex));
-            result.put(NoonRoverAccessAPI.cstJsonMaxResults, Long.valueOf(maxResults));
-            result.put(NoonRoverAccessAPI.cstJsonNbRecords, Long.valueOf(nbRecords));
+            Map<String, Object> resultJson = new HashMap<>();
+            resultJson.put("listevents", BEventFactory.getHtml(listEvents));
+            resultJson.put("listdata", listData);
+            resultJson.put("listheader", listHeader);
+            resultJson.put("listfooterdata", listFooterData);
+            resultJson.put(NoonRoverAccessAPI.cstJsonStartIndex, Long.valueOf(startIndex));
+            resultJson.put(NoonRoverAccessAPI.cstJsonMaxResults, Long.valueOf(maxResults));
+            resultJson.put(NoonRoverAccessAPI.cstJsonNbRecords, Long.valueOf(nbRecords));
 
-            return result;
+            return resultJson;
         }
 
         /**

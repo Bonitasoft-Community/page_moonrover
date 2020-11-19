@@ -87,7 +87,7 @@ public class NRBusCmdControl extends BonitaCommandApiAccessor {
         Long persistenceID;
         TransactionBDM transactionBdm = new TransactionBDM();
 
-        String finalStatus = "";
+        
         // a persistenceId ? Read it
         try {
             persistenceID = (Long) record.get("PersistenceId");

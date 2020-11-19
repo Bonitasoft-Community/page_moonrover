@@ -11,7 +11,9 @@ public class NRToolbox {
 
     public static class NRException extends Exception {
 
-        public List<BEvent> listEvents = new ArrayList<BEvent>();
+        private static final long serialVersionUID = -4999813528634450480L;
+        
+        public final List<BEvent> listEvents = new ArrayList<>();
 
         public NRException() {
         }
@@ -33,7 +35,7 @@ public class NRToolbox {
             "Action is not possible", "Report it as a bug");
 
     public static Object getJsonParameter(boolean mandatory, String parameterName, Map<String, Object> jsonMap,
-            String localisation, Class className) throws NRException {
+            String localisation, @SuppressWarnings("rawtypes") Class className) throws NRException {
         if (mandatory && !jsonMap.containsKey(parameterName)) {
             NRException nrException = new NRException();
             nrException.listEvents.add(new BEvent(eventMissingMandatoryParameter,
@@ -72,11 +74,13 @@ public class NRToolbox {
         return (Long) getJsonParameter(mandatory, parameterName, jsonMap, localisation, Long.class);
     }
 
+    @SuppressWarnings("rawtypes")
     public static List getJsonList(boolean mandatory, String parameterName, Map<String, Object> jsonMap,
             String localisation) throws NRException {
         return (List) getJsonParameter(mandatory, parameterName, jsonMap, localisation, List.class);
     }
 
+    @SuppressWarnings("rawtypes")
     public static Map getJsonMap(boolean mandatory, String parameterName, Map<String, Object> jsonMap,
             String localisation) throws NRException {
         return (Map) getJsonParameter(mandatory, parameterName, jsonMap, localisation, Map.class);

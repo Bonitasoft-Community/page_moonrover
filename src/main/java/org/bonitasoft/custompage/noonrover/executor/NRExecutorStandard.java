@@ -48,8 +48,9 @@ public class NRExecutorStandard extends NRExecutor {
 
         // create the SQL Request
 
-        String sqlRequest = "SELECT ";
-        String groupBy = "";
+        StringBuffer sqlRequest = new StringBuffer();
+        sqlRequest.append("SELECT ");
+        StringBuffer groupBy = new StringBuffer();
         boolean existCol = false;
         for (ResultsetColumn column : executorStream.result.listColumnset) {
 
@@ -70,69 +71,72 @@ public class NRExecutorStandard extends NRExecutor {
                 column.isSum=false;
                 continue;
             }
-            if (column.isVisible || column.isGroupBy || column.isSum) {
+            if (column.attributeDefinition.name.equalsIgnoreCase("persistenceid"))
+                column.isQueryable=true;
+            if (column.isQueryable || column.isVisible || column.isGroupBy || column.isSum) {
                 if (existCol)
-                    sqlRequest += ", ";
+                    sqlRequest.append( ", ");
                 existCol = true;
-                sqlRequest += column.attributeDefinition.name;
+                sqlRequest.append(column.attributeDefinition.name);
             }
             if (column.isGroupBy) {
                 if (groupBy.length() > 0)
-                    groupBy += ", ";
-                groupBy += column.attributeDefinition.name;
+                    groupBy.append( ", " );
+                groupBy.append( column.attributeDefinition.name);
             }
         }
         if (!existCol)
             throw new NRException(eventNoColum);
 
-        sqlRequest += " FROM " + executorStream.selection.busDefinition.getTableName();
+        sqlRequest.append( " FROM " + executorStream.selection.busDefinition.getTableName());
 
-        List<Object> listValues = new ArrayList<Object>();
+        List<Object> listValues = new ArrayList<>();
 
-        String whereClause = "";
+        StringBuffer whereClause = new StringBuffer();
         for (NRBusSelection.SelectionParameter parameter : executorStream.selection.listParameters) {
             if (parameter.value != null && parameter.value.toString().trim().length() > 0) {
                 if (whereClause.length() > 0)
-                    whereClause += " " + parameter.operand.toString() + " ";
+                    whereClause.append(  " " + parameter.operand.toString() + " ");
 
-                String condition = parameter.name + " " + NRBusDefinition.OperatorSql.get(parameter.operator) + " ";
+                StringBuffer condition = new StringBuffer();
+                condition.append( parameter.name + " " + NRBusDefinition.OperatorSql.get(parameter.operator) + " ");
 
                 if (parameter.operator == OPERATOR.ISNULL)
                     continue;
                 if (parameter.operator == OPERATOR.LIKE) {
                     listValues.add("%" + parameter.value + "%");
-                    condition += " ? ";
+                    condition.append( " ? ");
                 } else if (parameter.operator == OPERATOR.RANGE) {
 
                     listValues.add(getValueParameter(parameter, parameter.value));
                     listValues.add(getValueParameter(parameter, parameter.valueTo));
 
-                    condition = "( " + parameter.name + " >= ? AND " + parameter.name + " < ?) ";
+                    condition.append( "( " + parameter.name + " >= ? AND " + parameter.name + " < ?) ");
                 } else {
                     listValues.add(getValueParameter(parameter, parameter.value));
 
-                    condition += " ? ";
+                    condition.append(  " ? " );
                 }
-                whereClause += condition + " ";
+                whereClause.append( condition.toString() + " ");
             }
         }
         if (whereClause.length() > 0)
-            sqlRequest += " WHERE " + whereClause;
+            sqlRequest.append( " WHERE " + whereClause.toString());
 
         if (groupBy.length() > 0)
-            sqlRequest += " GROUP BY " + groupBy;
-        if (executorStream.selection.listOrderBy.size() > 0) {
-            String orderClause = "";
+            sqlRequest.append( " GROUP BY " + groupBy.toString() );
+        if (! executorStream.selection.listOrderBy.isEmpty()) {
+            StringBuffer orderClause = new StringBuffer();
             for (NRBusSelection.OrderByParameter orderByparam : executorStream.selection.listOrderBy) {
 
                 if (orderClause.length() > 0)
-                    orderClause += ", ";
-                orderClause += orderByparam.columnId + " " + (orderByparam.ascendant ? "ASC" : "DESC");
+                    orderClause.append( ", ");
+                orderClause.append( orderByparam.columnId + " " + (orderByparam.ascendant ? "ASC" : "DESC"));
             }
-            sqlRequest += " ORDER BY " + orderClause;
+            sqlRequest.append( " ORDER BY " + orderClause.toString());
         }
 
-        executorStream = executePreparedStatement(executorStream, sqlRequest, listValues,
+        executorStream = executePreparedStatement(executorStream, sqlRequest.toString(), listValues,
                 executorStream.selection.busDefinition.result);
 
         return executorStream;
@@ -175,9 +179,9 @@ public class NRExecutorStandard extends NRExecutor {
             List<Object> listValues, NRBusResult result) throws NRException {
 
         PreparedStatement pstmt = null;
-        Connection con = null;
-        try {
-            con = getConnection();
+        
+        try (Connection con = getConnection();) {
+            
             pstmt = con.prepareStatement(sqlRequest, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             for (int i = 0; i < listValues.size(); i++) {
@@ -215,11 +219,11 @@ public class NRExecutorStandard extends NRExecutor {
             // Data is retrieve as it, then the next executor will decide and transform it if needed
             while (rs.next() && count < executorStream.maxResults) {
                 count++;
-                Map<String, Object> record = new HashMap<String, Object>();
+                Map<String, Object> record = new HashMap<>();
                 // result pilot the item to retrieve
                 if (result != null)
                     for (ResultsetColumn column : result.listColumnset) {
-                        if (column.isVisible || column.isSum)
+                        if (column.isQueryable|| column.isVisible || column.isSum)
                             record.put(column.attributeDefinition.name, rs.getObject(column.attributeDefinition.name));
                     }
                 else {
@@ -248,8 +252,7 @@ public class NRExecutorStandard extends NRExecutor {
                     pstmt.close();
                 } catch (SQLException e) {
                 }
-            if (con != null)
-                con = null;
+           
         }
         return executorStream;
     }

@@ -203,7 +203,7 @@ public class NoonRoverAccessAPI {
         if (executorStream.isJsonResult())
             return executorStream.getJson();
         else
-            return new HashMap<String, Object>();
+            return new HashMap<>();
     }
 
     
@@ -219,7 +219,7 @@ public class NoonRoverAccessAPI {
                     tenantId,tenantServiceAccessor );
         }
         else
-            result= new HashMap<String,Object>();
+            result= new HashMap<>();
         return result;
             
     }

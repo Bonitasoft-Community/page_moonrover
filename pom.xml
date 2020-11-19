@@ -9,7 +9,7 @@
 	<groupId>org.bonitasoft.custompage</groupId>
 	<artifactId>bonita-moonrover</artifactId>
 	<!--  ATTENTION, any modification here must be apply in NRBusDefinitionBDM.java -->
-	<version>2.4.0</version>
+	<version>2.4.1</version>
 
 	<dependencies>
 		<dependency>

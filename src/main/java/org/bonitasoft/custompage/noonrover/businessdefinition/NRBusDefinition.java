@@ -258,7 +258,7 @@ public class NRBusDefinition {
             executorStream.result = result;
             executorStream.selection = selectedSelection;
             executorStream.name = this.getName();
-            List<NRExecutor> listExecutor = new ArrayList<NRExecutor>();
+            List<NRExecutor> listExecutor = new ArrayList<>();
 
             listExecutor.add(NRExecutor.getInstance(selectedSelection.typeFind));
             listExecutor.add(NRResultSet.getInstance(result.typeResultSet));

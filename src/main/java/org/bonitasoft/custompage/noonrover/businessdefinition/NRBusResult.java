@@ -19,11 +19,11 @@ public class NRBusResult {
     public enum TYPERESULTSET {
         TABLE, CHART, JASPER, EDITRECORD
                               
-    };
+    }
 
     public TYPERESULTSET typeResultSet = TYPERESULTSET.TABLE;
     // choose between NRBussAttribute and NRResult.ColumnParameter
-    public List<ResultsetColumn> listColumnset = new ArrayList<ResultsetColumn>();
+    public List<ResultsetColumn> listColumnset = new ArrayList<>();
 
     private NRBusDefinition busSelection;
 
@@ -48,6 +48,8 @@ public class NRBusResult {
         public boolean isSum;
         public boolean isOrder;
         public boolean isFilter;
+        // this column must be part of the query, and on the result
+        public boolean isQueryable=false;
 
         protected ResultsetColumn(NRBusAttribute attributeDefinition) {
             this.attributeDefinition = attributeDefinition;
@@ -58,7 +60,7 @@ public class NRBusResult {
         public String toString() {
             return "ResultSetCol " + attributeDefinition.tableName + "." + attributeDefinition.name + "("
                     + attributeDefinition.type + ")";
-        };
+        }
 
     }
 
@@ -80,33 +82,34 @@ public class NRBusResult {
     /*                                                                      */
     /* -------------------------------------------------------------------- */
 
-    public static String cstJsonType = "typeresult";
+    public final static String cstJsonType = "typeresult";
 
-    public static String cstJsonColumns = "columns";
-    public static String cstJsonColumnName = "name";
-    public static String cstJsonColumnVisible = "visible";
-    public static String cstJsonColumnGroupBy = "groupby";
-    public static String cstJsonColumnSum = "sum";
+    public final static String cstJsonColumns = "columns";
+    public final static String cstJsonColumnName = "name";
+    public final static String cstJsonColumnVisible = "visible";
+    public final static String cstJsonColumnGroupBy = "groupby";
+    public final static String cstJsonColumnSum = "sum";
 
-    public static String cstJsonColumnTitle = "title";
-    public static String cstJsonColumnId = "columnid";
+    public final static String cstJsonColumnTitle = "title";
+    public final static String cstJsonColumnId = "columnid";
     /**
      * the column can be ordered
      */
-    public static String cstJsonColumnIsordered = "isOrderer";
+    public final static String cstJsonColumnIsordered = "isOrderer";
     /**
      * the colum can be filtered
      */
-    public static String cstJsonColumnIsfiltered = "isFiltered";
-    public static String cstJsonColumnType = "type";
-    public static String cstJsonColumnTypeEditRecord= "_EDITRECORD";
+    public final static String cstJsonColumnIsfiltered = "isFiltered";
+    public final static String cstJsonColumnIsVisible = "isVisible";
+    public final static String cstJsonColumnType = "type";
+    public final static String cstJsonColumnTypeEditRecord= "_EDITRECORD";
     
     public Map<String, Object> getJson() {
-        Map<String, Object> resultJson = new HashMap<String, Object>();
+        Map<String, Object> resultJson = new HashMap<>();
 
-        List<Map<String, Object>> listColumnJson = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> listColumnJson = new ArrayList<>();
         for (ResultsetColumn column : listColumnset) {
-            Map<String, Object> columnJson = new HashMap<String, Object>();
+            Map<String, Object> columnJson = new HashMap<>();
             columnJson.put(cstJsonColumnName, column.attributeDefinition.name);
             columnJson.put("type", column.attributeDefinition.type.toString());
             columnJson.put(cstJsonColumnVisible, column.isVisible);
@@ -132,7 +135,8 @@ public class NRBusResult {
             throw new NRException(new BEvent(eventNoTypeFound, "Type ResultSet(" + cstJsonType + ")"));
         }
 
-        List<Map<String, Object>> columnsList = NRToolbox.getJsonList(true, cstJsonColumns, resultJson,
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> columnsList = (List<Map<String, Object>>) NRToolbox.getJsonList(true, cstJsonColumns, resultJson,
                 locationJson);
         for (Map<String, Object> columnJson : columnsList) {
             String columnName = NRToolbox.getJsonSt(true, cstJsonColumnName, columnJson,

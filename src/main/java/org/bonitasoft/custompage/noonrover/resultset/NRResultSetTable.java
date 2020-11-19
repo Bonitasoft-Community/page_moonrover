@@ -35,26 +35,27 @@ public class NRResultSetTable extends NRResultSet {
         // isEditable ?
         if (isEditable)
         {
-            Map<String, Object> headerCol = new HashMap<String, Object>();
+            Map<String, Object> headerCol = new HashMap<>();
             headerCol.put(NRBusResult.cstJsonColumnTitle, "");
             headerCol.put(NRBusResult.cstJsonColumnId, "");
             headerCol.put(NRBusResult.cstJsonColumnIsordered, false);
             headerCol.put(NRBusResult.cstJsonColumnIsfiltered, false);
-
+            headerCol.put(NRBusResult.cstJsonColumnIsVisible, true);
             headerCol.put(NRBusResult.cstJsonColumnType, NRBusResult.cstJsonColumnTypeEditRecord);
 
             requestData.listHeader.add(headerCol);
 
         }
         // prepare the header
-        Map<String, Double> sumData = new HashMap<String, Double>();
+        Map<String, Double> sumData = new HashMap<>();
         for (ResultsetColumn column : requestData.result.listColumnset) {
-            if (column.isVisible) {
-                Map<String, Object> headerCol = new HashMap<String, Object>();
+            if (column.isVisible || column.isQueryable) {
+                Map<String, Object> headerCol = new HashMap<>();
                 headerCol.put(NRBusResult.cstJsonColumnTitle, column.attributeDefinition.name);
                 headerCol.put(NRBusResult.cstJsonColumnId, column.attributeDefinition.name);
                 headerCol.put(NRBusResult.cstJsonColumnIsordered, requestData.isOrderPossible);
                 headerCol.put(NRBusResult.cstJsonColumnIsfiltered, requestData.isFilterPossible);
+                headerCol.put(NRBusResult.cstJsonColumnIsVisible, column.isVisible);
 
                 headerCol.put(NRBusResult.cstJsonColumnType, column.attributeDefinition.type.toString());
 
@@ -68,7 +69,7 @@ public class NRResultSetTable extends NRResultSet {
         Set<String> setColumnsExpected = new HashSet<String>();
 
         for (ResultsetColumn column : requestData.result.listColumnset) {
-            if (column.isVisible)
+            if (column.isVisible || column.isQueryable)
                 setColumnsExpected.add(column.attributeDefinition.name);
         }
 

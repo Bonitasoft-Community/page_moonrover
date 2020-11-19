@@ -26,7 +26,24 @@ appCommand.controller('moonroverController',
 
 	this.inprogress=false;
 	this.isinitialised=false;
+
+	this.navbaractiv="noform";
 	
+	this.getNavClass = function( tabtodisplay )
+	{
+		if (this.navbaractiv === tabtodisplay)
+			return 'ng-isolate-scope active';
+		return 'ng-isolate-scope';
+	}
+
+	this.getNavStyle = function( tabtodisplay )
+	{
+		if (this.navbaractiv === tabtodisplay)
+			return 'border: 1px solid #c2c2c2;border-bottom-color: transparent;';
+		return 'background-color:#cbcbcb';
+	}
+	
+
 	this.getHttpConfig = function () {
 		var additionalHeaders = {};
 		var csrfToken = $cookies.get('X-Bonita-API-Token');
@@ -119,15 +136,23 @@ appCommand.controller('moonroverController',
 		
 		var url='?page=custompage_moonrover&action=loadsources&paramjson='+json+'&t='+d.getTime();
 		$http.get( url, this.getHttpConfig() )
-				.success( function ( jsonResult ) {
-							self.inprogress						= false;
-							self.definition.listevents = jsonResult.listevents;
-							self.definition.listsources = jsonResult.listsources;
-							self.definition.listselections=[];
+				.success( function ( jsonResult, statusHttp, headers, config ) {
+					
+					// connection is lost ?
+					if (statusHttp==401 || typeof jsonResult === 'string') {
+						console.log("Redirected to the login page !");
+						window.location.reload();
+					}
+
+				
+					self.inprogress						= false;
+					self.definition.listevents = jsonResult.listevents;
+					self.definition.listsources = jsonResult.listsources;
+					self.definition.listselections=[];
 
 
-							console.log("noonrover.loadSources : receive list");
-							}
+					console.log("noonrover.loadSources : receive list");
+					}
 				)
 				.error( function ( result ) {
 							self.inprogress						= false;
@@ -244,7 +269,7 @@ appCommand.controller('moonroverController',
 	
 	// this is the sum of the parameters AND parametersvalue
 	this.getListFormParameters = function() {
-		console.log("noonrover.getListFormParameter, type=["+this.request.selection.type+"]");
+		console.log("noonrover.getListFormParameter, type=["+this.request.selection.type+"] navabar=["+this.navbaractiv+"]");
 		if (! this.request.selection.type) {
 			console.log("noonrover.getListFormParameter, novalue=");
 			return [];
@@ -336,8 +361,15 @@ appCommand.controller('moonroverController',
 		var d = new Date();
 		var url='?page=custompage_moonrover&action=loadRequest&paramjson='+json+'&t='+d.getTime();
 		$http.get( url, this.getHttpConfig() )
-				.success( function ( jsonResult ) {
+				.success( function ( jsonResult, statusHttp, headers, config ) {
 			
+					// connection is lost ?
+					if (statusHttp==401 || typeof jsonResult === 'string') {
+						console.log("Redirected to the login page !");
+						window.location.reload();
+					}
+
+				
 					// update the corresponding selection, and switch on
 					selfLoad.inprogress						= false;
 					selfLoad.saveinfo.listevents 			= jsonResult.listevents;
@@ -370,13 +402,19 @@ appCommand.controller('moonroverController',
 			
 			var url='?page=custompage_moonrover&action=deleteRequest&paramjson='+json+'&t='+d.getTime();
 			$http.get( url, this.getHttpConfig() )
-			.success( function ( jsonResult ) {
-				
-						// update the corresponding selection, and switch on
-						self.inprogress						= false;
-						self.saveinfo.listevents = jsonResult.listevents;
-						self.saveinfo.listevents = jsonResult.listevents;
-						self.saveinfo.listrequests=jsonResult.listrequests;
+			.success( function ( jsonResult, statusHttp, headers, config ) {
+				// connection is lost ?
+				if (statusHttp==401 || typeof jsonResult === 'string') {
+					console.log("Redirected to the login page !");
+					window.location.reload();
+				}
+
+			
+				// update the corresponding selection, and switch on
+				self.inprogress						= false;
+				self.saveinfo.listevents = jsonResult.listevents;
+				self.saveinfo.listevents = jsonResult.listevents;
+				self.saveinfo.listrequests=jsonResult.listrequests;
 			})
 			.error( function ( result ) {
 						self.inprogress						= false;
@@ -396,12 +434,19 @@ appCommand.controller('moonroverController',
 		
 		var url='?page=custompage_moonrover&action=listRequests&paramjson='+json+'&t='+d.getTime();
 		$http.get( url, this.getHttpConfig() )
-				.success( function ( jsonResult ) {
-							self.inprogress						= false;
-							self.saveinfo.listevents = jsonResult.listevents;
-							self.saveinfo.listrequests=jsonResult.listrequests;
-							console.log("noonrover.loadListSelection : receive ");
-						}
+				.success( function ( jsonResult, statusHttp, headers, config ) {
+					// connection is lost ?
+					if (statusHttp==401 || typeof jsonResult === 'string') {
+						console.log("Redirected to the login page !");
+						window.location.reload();
+					}
+
+				
+					self.inprogress						= false;
+					self.saveinfo.listevents = jsonResult.listevents;
+					self.saveinfo.listrequests=jsonResult.listrequests;
+					console.log("noonrover.loadListSelection : receive ");
+				}
 				)
 				.error( function ( result ) {
 							self.inprogress						= false;
@@ -481,13 +526,15 @@ appCommand.controller('moonroverController',
 	// -----------------------------------------------------------------------------------------
 	this.form = {'requestname':''};
 	
-	this.setForm = function ( ) {
-		console.log("noonrover.setform");
+	this.setForm = function ( formname) {
+		console.log("noonrover.setform ["+formname+"] navbar=["+this.navbaractiv+"]");
+		this.form.requestname = formname;
+		this.request.result=[]; // clear the result
 		var sourceSelected=null;
 		for (var i in this.saveinfo.listrequests)
 		{
 			var sourceI = this.saveinfo.listrequests[ i ];
-			if (sourceI.name === this.form.requestname)
+			if (sourceI.name === formname)
 			{
 				this.form.description = sourceI.description;
 				sourceSelected = sourceI;
@@ -537,6 +584,7 @@ appCommand.controller('moonroverController',
 	this.getListFields = function( recordData, headers )
 	{
 		var listFields=[];
+		console.log("getListFields.header= "+angular.toJson(headers));
 		for (var i in headers)
 		{
 			var oneHeader = headers[ i ]
@@ -547,13 +595,16 @@ appCommand.controller('moonroverController',
 			
 			var record = {'name': oneHeader.columnid, 'title': oneHeader.title,'type': oneHeader.type, 'value': '' };
 			record.show=true;
-			if (oneHeader.columnid == 'PersistenceId')
+			if (! oneHeader.isVisible)
 				record.show=false;
+			/* bob if (oneHeader.columnid == 'PersistenceId')
+				record.show=false; */
 			record.value = recordData[ oneHeader.columnid ];
 			
 			listFields.push( record );
 		
 		}
+		console.log("ListFields= "+angular.toJson(listFields));
 		return listFields;
 		
 	}
@@ -566,7 +617,7 @@ appCommand.controller('moonroverController',
 		this.edit.sourcename 	= sourcename;
 		this.edit.listrecords 	= this.getListFields( recordData, headers );
 		this.edit.operation 	= 'UPDATE';
-
+		this.edit.listevents 	= "";
 		this.openModalRecord();
 		
 	}
@@ -583,8 +634,6 @@ appCommand.controller('moonroverController',
 	}
 	this.updateRecord = function( )
 	{
-		// call server tp update the record
-		alert('Confirm the modification ');
 		// this.edit.sourcename="com.airtahitinui.bpm.TNWaiverCode";
 		var param={ 'request': { 'sourcename' : this.edit.sourcename },
 				'listrecords': this.edit.listrecords};
@@ -677,7 +726,15 @@ appCommand.controller('moonroverController',
 		var d = new Date();
 		
 		$http.get( '?page=custompage_moonrover&t='+d.getTime()+'&'+self.listUrlCall[ self.listUrlIndex ] , this.getHttpConfig())
-			.success( function ( jsonResult ) {
+			.success( function ( jsonResult, statusHttp, headers, config ) {
+				
+				// connection is lost ?
+				if (statusHttp==401 || typeof jsonResult === 'string') {
+					console.log("Redirected to the login page !");
+					window.location.reload();
+				}
+
+			
 				// console.log("Correct, for ["+self.listUrlCall[ self.listUrlIndex ] +"] jsonResult=["+angular.toJson(jsonResult)+"]");
 				// angular.toJson(jsonResult));
 				self.listUrlIndex = self.listUrlIndex+1;
@@ -732,9 +789,18 @@ appCommand.controller('moonroverController',
 	//  										Result fonction
 	// -----------------------------------------------------------------------------------------
 	this.getResultHeader = function() {
+		var listHeader =[];
+		for( var i in this.report.listheader) {
+			if (this.report.listheader[ i ].isVisible)
+				listHeader.push(this.report.listheader[ i ]);
+		}
+		return listHeader; // this.report.listheader;
+	}
+	this.getResultHeaderComplete = function() {
 		return this.report.listheader;
 		
 	}
+
 	this.getResultData = function() {
 		return this.report.listdata;
 	}
@@ -840,20 +906,29 @@ appCommand.controller('moonroverController',
 		
 		var url='?page=custompage_moonrover&action=init&paramjson='+json+'&t='+d.getTime();;
 		$http.get( url, this.getHttpConfig() )
-				.success( function ( jsonResult ) {
-							self.inprogress						= false;
-							self.definition.listevents = jsonResult.listevents;
-							self.definition.listsources = jsonResult.listsources;
-							self.definition.listselections=[];
+				.success( function ( jsonResult, statusHttp, headers, config ) {
+					// connection is lost ?
+					if (statusHttp==401 || typeof jsonResult === 'string') {
+						console.log("Redirected to the login page !");
+						window.location.reload();
+					}
 
-							self.saveinfo.listrequests = jsonResult.listrequests;
-							self.display.isadmin = jsonResult.isadmin;
-							
-							
-							self.isinitialised = true;
-							
-							console.log("noonrover.init : receive list");
-							}
+				
+					self.inprogress						= false;
+					self.definition.listevents = jsonResult.listevents;
+					self.definition.listsources = jsonResult.listsources;
+					self.definition.listselections=[];
+
+					self.saveinfo.listrequests = jsonResult.listrequests;
+					self.display.isadmin = jsonResult.isadmin;
+					self.isinitialised = true;
+					
+					if (self.saveinfo.listrequests && self.saveinfo.listrequests.length>0) {
+						self.navbaractiv = 'form-'+self.saveinfo.listrequests[0].name;
+						self.setForm(self.saveinfo.listrequests[0].name);
+					}
+					console.log("noonrover.init : receive list");
+					}
 				)
 				.error( function ( result ) {
 							self.inprogress						= false;
