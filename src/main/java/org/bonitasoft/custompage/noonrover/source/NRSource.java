@@ -17,8 +17,8 @@ public abstract class NRSource {
 
     public static class SourceStatus {
 
-        public List<BEvent> listEvents = new ArrayList<BEvent>();
-        public List<NRBusDefinition> listBusinessDefinition = new ArrayList<NRBusDefinition>();
+        public List<BEvent> listEvents = new ArrayList<>();
+        public List<NRBusDefinition> listBusinessDefinition = new ArrayList<>();
 
         public void add(SourceStatus sourceStatus) {
             this.listEvents.addAll(sourceStatus.listEvents);
@@ -26,9 +26,9 @@ public abstract class NRSource {
         }
 
         public Map<String, Object> getJson() {
-            Map<String, Object> result = new HashMap<String, Object>();
+            Map<String, Object> result = new HashMap<>();
 
-            List<Map<String, Object>> listBusiness = new ArrayList<Map<String, Object>>();
+            List<Map<String, Object>> listBusiness = new ArrayList<>();
             Collections.sort(listBusinessDefinition, new Comparator<NRBusDefinition>() {
 
                 public int compare(NRBusDefinition s1,
@@ -52,6 +52,5 @@ public abstract class NRSource {
      * @param businessFactory
      * @return
      */
-    public abstract SourceStatus getListBusinessDefinition(APISession apiSession,
-            NRBusDefinitionFactory businessFactory);
+    public abstract SourceStatus loadBusinessDefinition(APISession apiSession, NRBusDefinitionFactory businessFactory);
 }

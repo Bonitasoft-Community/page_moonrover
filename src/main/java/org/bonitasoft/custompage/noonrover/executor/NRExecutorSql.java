@@ -10,14 +10,14 @@ import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox.NRException;
 
 public class NRExecutorSql extends NRExecutor {
 
-    public NRExecutor.ExecutorStream execute(NRExecutor.ExecutorStream executorStream) throws NRException {
+    public NRStream execute(NRStream executorStream) throws NRException {
 
         /**
          * It not possible to add any order, because the sql clause may be very complex
          */
         executorStream.isOrderPossible = false;
         executorStream.isFilterPossible = false;
-        List<Object> listValues = new ArrayList<Object>();
+        List<Object> listValues = new ArrayList<>();
 
         // run the sqlRequest and replace all ':XXX' by the current parameter. Attention, the :XX may be multiple so we must parse from the begining the string
         // select a,b,c where a = :XX and b= :YY and c <= :XX and c>= :XX
@@ -52,11 +52,11 @@ public class NRExecutorSql extends NRExecutor {
         executorStream = NRExecutorStandard.executePreparedStatement(executorStream, sqlRequest, listValues, null);
 
         // build a new requestData.result
-        executorStream.result = new NRBusResult(executorStream.selection.busDefinition);
+        executorStream.setResult( new NRBusResult(executorStream.selection.busDefinition) );
         for (String columnName : executorStream.listColumnName) {
             NRBusAttribute busAttribute = executorStream.selection.busDefinition.getInstanceAttribute(
                     executorStream.selection.busDefinition.getTableName(), columnName, TYPECOLUMN.STRING, false);
-            executorStream.result.addListResultsetColumFromAttribute(busAttribute);
+            executorStream.getResult().addListResultsetColumFromAttribute(busAttribute);
         }
         return executorStream;
     }

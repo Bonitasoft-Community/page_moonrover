@@ -1,7 +1,16 @@
 package org.bonitasoft.custompage.noonrover;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,23 +18,25 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusCommandAPI;
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusDefinition;
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusDefinitionBDM;
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusDefinitionFactory;
-import org.bonitasoft.custompage.noonrover.executor.NRExecutor;
+import org.bonitasoft.custompage.noonrover.executor.NRStream;
+import org.bonitasoft.custompage.noonrover.executor.NRStreamServletResponse;
 import org.bonitasoft.custompage.noonrover.librairy.RequestFactory;
 import org.bonitasoft.custompage.noonrover.librairy.RequestFactory.LibraryResult;
 import org.bonitasoft.custompage.noonrover.source.NRSource;
 import org.bonitasoft.custompage.noonrover.source.NRSourceFactory;
 import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox;
 import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox.NRException;
+import org.bonitasoft.engine.api.CommandAPI;
+import org.bonitasoft.engine.api.PlatformAPI;
 import org.bonitasoft.engine.api.ProfileAPI;
 import org.bonitasoft.engine.api.TenantAPIAccessor;
-import org.bonitasoft.engine.business.data.BusinessDataRepository;
 import org.bonitasoft.engine.profile.Profile;
 import org.bonitasoft.engine.profile.ProfileCriterion;
 import org.bonitasoft.engine.service.TenantServiceAccessor;
-import org.bonitasoft.engine.service.TenantServiceSingleton;
 import org.bonitasoft.engine.session.APISession;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
@@ -47,13 +58,13 @@ public class NoonRoverAccessAPI {
     public static String cstJsonMaxResults = "maxresults";
     public static String cstJsonNbRecords = "nbrecords";
 
-    public static String cstJsonListEvents="listevents";
-    
+    public static String cstJsonListEvents = "listevents";
+
     public static class ParameterSource {
 
         public String jsonSt;
         public NRBusDefinition businessDefinition;
-        public List<BEvent> listEvents = new ArrayList<BEvent>();
+        public List<BEvent> listEvents = new ArrayList<>();
         public Long startIndex;
         public Long maxResults;
         public Long nbRecords;
@@ -61,15 +72,17 @@ public class NoonRoverAccessAPI {
 
         public String name;
 
-        
+        public long maxExportRecordsPerEntity;
+        public List<String> entitiesToExport;
+
         // source can borrow a record
-        public List<Map<String,Object>> listRecords;
-        
+        public List<Map<String, Object>> listRecords;
+
         public enum TYPEOUTPUT {
             NORMAL, CSV
         };
 
-        public TYPEOUTPUT typeOutput = TYPEOUTPUT.NORMAL;;
+        public TYPEOUTPUT typeOutput = TYPEOUTPUT.NORMAL;
 
         public static ParameterSource getInstanceFromJson(APISession apiSession, String jsonSt) {
             ParameterSource parameterSource = new ParameterSource();
@@ -115,6 +128,14 @@ public class NoonRoverAccessAPI {
             } catch (Exception e) {
                 // name may not be present
             }
+
+            try {
+                parameterSource.maxExportRecordsPerEntity = NRToolbox.getJsonLong(false, "maxRecordsPerEntity", jsonHash, "/");
+                parameterSource.entitiesToExport = (List<String>) jsonHash.get("entities");;
+            } catch (Exception e) {
+                // name may not be present
+            }
+
             return parameterSource;
 
         }
@@ -167,7 +188,7 @@ public class NoonRoverAccessAPI {
 
         NRSource.SourceStatus globalSourceStatus = new NRSource.SourceStatus();
         for (NRSource source : sourceFactory.getSources()) {
-            NRSource.SourceStatus sourceStatus = source.getListBusinessDefinition(apiSession,
+            NRSource.SourceStatus sourceStatus = source.loadBusinessDefinition(apiSession,
                     businessDefinitionFactory);
             globalSourceStatus.add(sourceStatus);
 
@@ -192,8 +213,8 @@ public class NoonRoverAccessAPI {
     public Map<String, Object> executeRequest(final ParameterSource parameterSource, HttpServletResponse response) {
 
         logger.info("NoonRooverAPI:ExecuteRequest");
-        NRExecutor.ExecutorStream executorStream = new NRExecutor.ExecutorStream(parameterSource);
-        executorStream.response = response;
+        NRStream executorStream = new NRStreamServletResponse(parameterSource, response);
+
         if (BEventFactory.isError(parameterSource.listEvents)) {
             executorStream.listEvents = parameterSource.listEvents;
             return executorStream.getJson();
@@ -206,25 +227,27 @@ public class NoonRoverAccessAPI {
             return new HashMap<>();
     }
 
-    
-    public Map<String, Object> updateRecordBdm(final ParameterSource parameterSource,  File pageDirectory,
-            long tenantId,TenantServiceAccessor tenantServiceAccessor) {
-        
-        
-        NRBusDefinition businessDefinition=  parameterSource.businessDefinition;
-        Map<String,Object> result=null;
-        if (businessDefinition instanceof NRBusDefinitionBDM)
-        {
-           result= ((NRBusDefinitionBDM)businessDefinition).updateRecordBDM(parameterSource,  pageDirectory,
-                    tenantId,tenantServiceAccessor );
-        }
-        else
-            result= new HashMap<>();
+    /**
+     * @param parameterSource
+     * @param pageDirectory
+     * @param tenantId
+     * @param tenantServiceAccessor
+     * @return
+     */
+    public Map<String, Object> updateRecordBdm(final ParameterSource parameterSource, File pageDirectory,
+            long tenantId, TenantServiceAccessor tenantServiceAccessor) {
+
+        NRBusDefinition businessDefinition = parameterSource.businessDefinition;
+        Map<String, Object> result = null;
+        if (businessDefinition instanceof NRBusDefinitionBDM) {
+            result = ((NRBusDefinitionBDM) businessDefinition).updateRecordBDM(parameterSource, pageDirectory,
+                    tenantId, tenantServiceAccessor);
+        } else
+            result = new HashMap<>();
         return result;
-            
+
     }
 
-        
     /* -------------------------------------------------------------------- */
     /*                                                                      */
     /* Request operation */
@@ -264,6 +287,11 @@ public class NoonRoverAccessAPI {
         return getListRequests(parametersSource, pageResourceProvider).getJson();
     }
 
+    /**
+     * @param parametersSource
+     * @param pageResourceProvider
+     * @return
+     */
     public LibraryResult getListRequests(final ParameterSource parametersSource,
             PageResourceProvider pageResourceProvider) {
         logger.info("NoonRooverAPI:listRequests");
@@ -278,6 +306,11 @@ public class NoonRoverAccessAPI {
         return libraryResult;
     }
 
+    /**
+     * @param parametersSource
+     * @param pageResourceProvider
+     * @return
+     */
     public Map<String, Object> deleteRequest(final ParameterSource parametersSource,
             PageResourceProvider pageResourceProvider) {
         logger.info("NoonRooverAPI:DeleteRequest");
@@ -294,6 +327,11 @@ public class NoonRoverAccessAPI {
         return libraryResult.getJson();
     }
 
+    /**
+     * @param parametersSource
+     * @param pageResourceProvider
+     * @return
+     */
     public Map<String, Object> loadRequest(final ParameterSource parametersSource,
             PageResourceProvider pageResourceProvider) {
         logger.info("NoonRooverAPI:LoadRequest");
@@ -310,4 +348,129 @@ public class NoonRoverAccessAPI {
         return libraryResult.getJson();
     }
 
+    /* -------------------------------------------------------------------- */
+    /*                                                                      */
+    /* Export */
+    /*                                                                      */
+    /* -------------------------------------------------------------------- */
+
+    public Map<String, Object> launchExportData(final ParameterSource parametersSource,
+            PageResourceProvider pageResourceProvider,
+            File pageDirectory,
+            long tenantId,
+            TenantServiceAccessor tenantServiceAccessor) {
+        Map<String, Object> result = new HashMap<>();
+
+        List<BEvent> listEvents = new ArrayList<>();
+        try {
+            CommandAPI commandAPI = TenantAPIAccessor.getCommandAPI(parametersSource.apiSession);
+            PlatformAPI platformAPI = null;
+            NRBusCommandAPI nrCommandAPI = new NRBusCommandAPI(pageDirectory, commandAPI, platformAPI, tenantId);
+
+            listEvents.addAll(nrCommandAPI.launchExport(parametersSource.name,
+                    parametersSource.entitiesToExport,
+                    parametersSource.maxExportRecordsPerEntity,
+                    parametersSource.apiSession,
+                    getDirectoryExport()));
+            Map<String, Object> listExport = refreshExportData(parametersSource, pageResourceProvider, pageDirectory, tenantId, tenantServiceAccessor);
+            result.putAll(listExport);
+
+        } catch (Exception e) {
+            listEvents.add(new BEvent(NRBusDefinitionBDM.eventAPIError, e, ""));
+        }
+        result.put(NoonRoverAccessAPI.cstJsonListEvents, BEventFactory.getHtml(listEvents));
+        return result;
+    }
+
+    /**
+     * @param parametersSource
+     * @param pageResourceProvider
+     * @param pageDirectory
+     * @param tenantId
+     * @param tenantServiceAccessor
+     * @return
+     */
+    public Map<String, Object> refreshExportData(final ParameterSource parametersSource,
+            PageResourceProvider pageResourceProvider,
+            File pageDirectory,
+            long tenantId,
+            TenantServiceAccessor tenantServiceAccessor) {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        List<BEvent> listEvents = new ArrayList<>();
+        Map<String, Object> result = new HashMap<>();
+        try {
+            List<Map<String, Object>> listExportFiles = new ArrayList();
+            result.put("exportfiles", listExportFiles);
+            Long oneDayBefore = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
+
+            File folderExport = new File(getDirectoryExport());
+            for (final File f : folderExport.listFiles()) {
+                Map<String, Object> oneFile = new HashMap<>();
+
+                oneFile.put("filename", f.getName());
+                BasicFileAttributes attr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
+                oneFile.put("datefile", sdf.format(new Date(attr.creationTime().toMillis())));
+
+                // more than one day? Purge it
+                if (attr.creationTime().toMillis() < oneDayBefore) {
+                    Files.delete(Paths.get(f.getName()));
+                    continue;
+                }
+
+                if (f.isFile() && f.getName().endsWith(".zip")) {
+                    oneFile.put("status", "ready");
+                    listExportFiles.add(oneFile);
+                }
+                if (f.isFile() && f.getName().endsWith(".zipinprogress")) {
+                    oneFile.put("status", "inprogress");
+                    listExportFiles.add(oneFile);
+                }
+            }
+
+        } catch (Exception e) {
+            listEvents.add(new BEvent(NRBusDefinitionBDM.eventAPIError, e, ""));
+        }
+        result.put(NoonRoverAccessAPI.cstJsonListEvents, BEventFactory.getHtml(listEvents));
+        return result;
+    }
+
+    /**
+     * @param output
+     * @param name
+     * @param pageDirectory
+     *        * exportDataFile( output, fileName, pageDirectory );
+     */
+    public void exportDataFile(OutputStream output, String name, File pageDirectory) {
+        File fileToExport = new File(getDirectoryExport() + "/" + name);
+        try {
+            FileInputStream inputStream = new FileInputStream(fileToExport);
+
+            byte[] bytes = new byte[2048];
+            int read;
+            while ((read = inputStream.read(bytes)) != -1) {
+                output.write(bytes, 0, read);
+            }
+        } catch (Exception e) {
+            logger.severe("moonRover.exportDataFile :  exception " + e.getMessage());
+        }
+    }
+
+    /**
+     * @return
+     */
+    private String getDirectoryExport() {
+        String tempDirectory = System.getProperty("java.io.tmpdir");
+
+        Path path = Paths.get(tempDirectory + "/noonrover/export");
+
+        try {
+            Files.createDirectories(path);
+            return path.toString();
+
+        } catch (IOException e) {
+            return tempDirectory;
+        }
+
+    }
 }

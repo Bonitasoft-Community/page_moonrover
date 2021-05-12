@@ -47,7 +47,7 @@ public class NRSourceDatabase extends NRSource {
     /* -------------------------------------------------------------------- */
     public static Logger logger = Logger.getLogger(NoonRoverAccessAPI.class.getName());
 
-    public NRSource.SourceStatus getListBusinessDefinition(APISession apiSession,
+    public NRSource.SourceStatus loadBusinessDefinition(APISession apiSession,
             NRBusDefinitionFactory businessFactory) {
         NRSource.SourceStatus sourceStatus = new NRSource.SourceStatus();
         List<NRBusDefinition> listSourceBusinessDefinition = new ArrayList<NRBusDefinition>();

@@ -14,7 +14,7 @@ import java.util.Set;
 
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusResult;
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusResult.ResultsetColumn;
-import org.bonitasoft.custompage.noonrover.executor.NRExecutor;
+import org.bonitasoft.custompage.noonrover.executor.NRStream;
 import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox;
 import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox.NRException;
 
@@ -30,7 +30,8 @@ public class NRResultSetTable extends NRResultSet {
         this.isEditable= isEditable;
     }
     
-    public NRExecutor.ExecutorStream execute(NRExecutor.ExecutorStream requestData) throws NRException {
+    @SuppressWarnings("unchecked")
+    public NRStream execute(NRStream requestData) throws NRException {
 
         // isEditable ?
         if (isEditable)
@@ -48,7 +49,7 @@ public class NRResultSetTable extends NRResultSet {
         }
         // prepare the header
         Map<String, Double> sumData = new HashMap<>();
-        for (ResultsetColumn column : requestData.result.listColumnset) {
+        for (ResultsetColumn column : requestData.getResult().listColumnset) {
             if (column.isVisible || column.isQueryable) {
                 Map<String, Object> headerCol = new HashMap<>();
                 headerCol.put(NRBusResult.cstJsonColumnTitle, column.attributeDefinition.name);
@@ -66,15 +67,15 @@ public class NRResultSetTable extends NRResultSet {
         }
         // check that the listof data contains only the requested information, no more, not less
         // build the list of data to be set
-        Set<String> setColumnsExpected = new HashSet<String>();
+        Set<String> setColumnsExpected = new HashSet<>();
 
-        for (ResultsetColumn column : requestData.result.listColumnset) {
+        for (ResultsetColumn column : requestData.getResult().listColumnset) {
             if (column.isVisible || column.isQueryable)
                 setColumnsExpected.add(column.attributeDefinition.name);
         }
 
         for (Map<String, Object> record : requestData.listData) {
-            Set<String> setColumnToRemove = new HashSet<String>();
+            Set<String> setColumnToRemove = new HashSet<>();
             for (String key : record.keySet()) {
                 if (!setColumnsExpected.contains(key))
                     setColumnToRemove.add(key);
@@ -121,8 +122,7 @@ public class NRResultSetTable extends NRResultSet {
         }
 
         // add the sum value if any
-        if (sumData.size() > 0) {
-            // Map<String,Object> myData = (Map) sumData;
+        if ( ! sumData.isEmpty()) {
             requestData.listFooterData.add((Map) sumData);
         }
         return requestData;

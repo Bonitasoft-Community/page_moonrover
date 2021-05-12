@@ -13,12 +13,20 @@ import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 import org.bonitasoft.command.BonitaCommandApiAccessor;
+import org.bonitasoft.custompage.noonrover.inout.NRExport;
 import org.bonitasoft.command.BonitaCommand.ExecuteAnswer;
 import org.bonitasoft.command.BonitaCommand.ExecuteParameters;
 import org.bonitasoft.engine.api.APIAccessor;
+import org.bonitasoft.engine.api.TenantAPIAccessor;
+import org.bonitasoft.engine.api.TenantAdministrationAPI;
 import org.bonitasoft.engine.bdm.Entity;
 import org.bonitasoft.engine.business.data.BusinessDataRepository;
+import org.bonitasoft.engine.connector.ConnectorAPIAccessorImpl;
+import org.bonitasoft.engine.exception.BonitaHomeNotSetException;
+import org.bonitasoft.engine.exception.ServerAPIException;
+import org.bonitasoft.engine.exception.UnknownAPITypeException;
 import org.bonitasoft.engine.service.TenantServiceAccessor;
+import org.bonitasoft.engine.session.APISession;
 import org.bonitasoft.engine.transaction.UserTransactionService;
 
 /* ******************************************************************************** */
@@ -51,18 +59,25 @@ public class NRBusCmdControl extends BonitaCommandApiAccessor {
     /**
      * this constant is defined too in MilkQuartzJob to have an independent JAR
      */
-    public static String cstVerb = "verb";
-    /**
-     * this constant is defined too in MilkQuartzJob to have an independent JAR
-     */
-
+    public final static String CST_VERB_UPDATEBDM ="UpdateBdm";
+    public final static String CST_VERB_LAUNCHEXPORT ="launchExport";
+    
     public final static String CST_TENANTID = "tenantid";
     public final static String CST_BUSINESSNAME = "businessName";
     public final static String CST_RECORD = "record";
     public final static String CST_STATUS = "status";
     public final static String CST_STATUS_V_OKUPDATE = "OKUPDATE";
     public final static String CST_STATUS_V_OKINSERT = "OKINSERT";
+    public final static String CST_STATUS_V_STARTED = "OKSTARTED";
 
+    public final static String CST_EXPORTNAME = "exportname";
+    public final static String CST_EXPORTLISTENTITIES = "exportlistentities";
+    public final static String CST_EXPORTMAXRECORDPERENTITY = "maxrecordpertentity";
+    public final static String CST_EXPORTDIRECTORYEXPORT = "directoryexport";
+    public final static String CST_APISESSION = "apisession";
+    
+    
+    
     @Override
     public String getName() {
         return cstCommandName;
@@ -80,6 +95,28 @@ public class NRBusCmdControl extends BonitaCommandApiAccessor {
     @SuppressWarnings("unchecked")
     @Override
     public ExecuteAnswer executeCommandApiAccessor(ExecuteParameters executeParameters, APIAccessor apiAccessor, TenantServiceAccessor tenantServiceAccessor) {
+        if (NRBusCmdControl.CST_VERB_UPDATEBDM.equals(executeParameters.verb)) {
+            return updateBdm(executeParameters, apiAccessor, tenantServiceAccessor);
+        }
+        else if (NRBusCmdControl.CST_VERB_LAUNCHEXPORT.equals(executeParameters.verb)) {
+            NRExport nrExport = new NRExport();
+            
+            TenantAdministrationAPI tenantAdministrationAPI;
+            try {
+                APISession apiSession = (APISession) executeParameters.parametersCommand.get(NRBusCmdControl.CST_APISESSION);
+                tenantAdministrationAPI = TenantAPIAccessor.getTenantAdministrationAPI( apiSession );
+                return nrExport.launchExport(tenantAdministrationAPI, executeParameters, apiAccessor, tenantServiceAccessor);
+            } catch (BonitaHomeNotSetException | ServerAPIException | UnknownAPITypeException e) {
+                logger.severe(logHeader+" Can't get TenantAdministration");
+            }
+
+        }
+        return new ExecuteAnswer();
+    }
+    
+    private ExecuteAnswer updateBdm(ExecuteParameters executeParameters, APIAccessor apiAccessor, TenantServiceAccessor tenantServiceAccessor) {
+        
+        
         final String businessName = (String) executeParameters.parametersCommand.get(CST_BUSINESSNAME);
         Map<String, Object> record = (Map<String, Object>) executeParameters.parametersCommand.get("record");
         BusinessDataRepository businessDataRepository = tenantServiceAccessor.getBusinessDataRepository();
@@ -87,7 +124,6 @@ public class NRBusCmdControl extends BonitaCommandApiAccessor {
         Long persistenceID;
         TransactionBDM transactionBdm = new TransactionBDM();
 
-        
         // a persistenceId ? Read it
         try {
             persistenceID = (Long) record.get("PersistenceId");

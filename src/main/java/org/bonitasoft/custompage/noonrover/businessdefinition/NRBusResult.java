@@ -104,6 +104,10 @@ public class NRBusResult {
     public final static String cstJsonColumnType = "type";
     public final static String cstJsonColumnTypeEditRecord= "_EDITRECORD";
     
+    public NRBusResult() {
+        
+    }
+    
     public Map<String, Object> getJson() {
         Map<String, Object> resultJson = new HashMap<>();
 

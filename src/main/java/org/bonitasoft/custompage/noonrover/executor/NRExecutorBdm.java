@@ -28,7 +28,7 @@ public class NRExecutorBdm extends NRExecutor {
             "BDM Execution", "The request has an error", "No result to display",
             "Check exception");
 
-    public NRExecutor.ExecutorStream execute(NRExecutor.ExecutorStream executorStream) throws NRException {
+    public NRStream execute(NRStream executorStream) throws NRException {
         /**
          * query bdm does not allow after any ordering or filtering
          */
@@ -99,11 +99,11 @@ public class NRExecutorBdm extends NRExecutor {
                     logger.info("Result " + resultBdm == null ? "null" : resultBdm.getClass().getName());
                     if (resultBdm instanceof List) {
                         for (Object oneBdm : ((List) resultBdm)) {
-                            Map<String, Object> record = manageOneBdm(oneBdm, executorStream.result);
+                            Map<String, Object> record = manageOneBdm(oneBdm, executorStream.getResult());
                             executorStream.listData.add(record);
                         }
                     } else {
-                        Map<String, Object> record = manageOneBdm(resultBdm, executorStream.result);
+                        Map<String, Object> record = manageOneBdm(resultBdm, executorStream.getResult());
                         executorStream.listData.add(record);
                     }
 

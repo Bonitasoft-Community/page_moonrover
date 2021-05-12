@@ -50,20 +50,36 @@ public class NRSourceBDM extends NRSource {
             "The BDM information are correctly retrieved, but it's decodage failed", "No BDM object can be accessed",
             "Fix the error");
 
-    public SourceStatus getListBusinessDefinition(APISession apiSession, NRBusDefinitionFactory businessFactory) {
+    public SourceStatus loadBusinessDefinition(APISession apiSession, NRBusDefinitionFactory businessFactory) {
         SourceStatus sourceStatus = new SourceStatus();
 
         try {
-            TenantAdministrationAPI tenantAdmininstrationAPI = TenantAPIAccessor.getTenantAdministrationAPI(apiSession);
+            TenantAdministrationAPI tenantAdministrationAPI = TenantAPIAccessor.getTenantAdministrationAPI(apiSession);
+            sourceStatus= loadBusinessObjectInFactory(tenantAdministrationAPI, businessFactory );
+
+                
+        } catch (ServerAPIException | UnknownAPITypeException | BonitaHomeNotSetException e) {
+            sourceStatus.listEvents.add(new BEvent(EventErrorTenantAdministration, e, ""));
+        }
+        return sourceStatus;
+
+    }
+
+    /**
+     * Load BusinessObjectInFactory
+     * This method can be called from a page or a command.
+     * @param tenantAdministrationAPI
+     * @param businessFactory
+     * @return
+     */
+    public SourceStatus loadBusinessObjectInFactory(TenantAdministrationAPI tenantAdministrationAPI,NRBusDefinitionFactory businessFactory ) {
+        SourceStatus sourceStatus = new SourceStatus();
+
+        try {
             BusinessObjectModelConverter converter = new BusinessObjectModelConverter();
 
-            byte[] bdmZip = tenantAdmininstrationAPI.getClientBDMZip();
-
-            //  FileOutputStream fileBdm = new FileOutputStream("c:/temp/bdm.zip");
-            //  fileBdm.write(bdmZip);
-            //  fileBdm.close();
-
-            byte[] bomZip = getBomZip(bdmZip);
+            byte[] bdmZip = tenantAdministrationAPI.getClientBDMZip();
+            byte[] bomZip = getBomFromZip(bdmZip);
 
             BusinessObjectModel bom = converter.unzip(bomZip);
 
@@ -154,7 +170,8 @@ public class NRSourceBDM extends NRSource {
         return sourceStatus;
 
     }
-
+    
+    
     private TYPECOLUMN getTypeFromQueryClassName(String className) {
         if (className.equals("java.lang.Integer") || className.equals("java.lang.Long"))
             return TYPECOLUMN.NUM;
@@ -192,7 +209,7 @@ public class NRSourceBDM extends NRSource {
      * @return
      * @throws Exception
      */
-    private byte[] getBomZip(byte[] bdmZip) throws Exception {
+    private byte[] getBomFromZip(byte[] bdmZip) throws Exception {
         //get the zip file content
         ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(bdmZip));
         //get the zipped file list entry

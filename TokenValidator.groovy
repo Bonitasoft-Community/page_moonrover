@@ -22,7 +22,7 @@ public class TokenValidator {
     		if (apiToken != null) {
             if (headerFromRequest == null || !headerFromRequest.equals(apiToken)) {
                 if (LOGGER.isLoggable(Level.FINE)) {
-                    LOGGER.log(Level.FINE, "Token Validation failed, expected: " + apiToken + ", received: " + headerFromRequest);
+                    LOGGER.log(Level.SEVERE, "Token Validation failed, expected: " + apiToken + ", received: " + headerFromRequest);
                 }
                 httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return false;
@@ -33,7 +33,7 @@ public class TokenValidator {
             }
         } else {
             if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.log(Level.FINE, "Token Validation is not active. No CSRF token in session.");
+                LOGGER.log(Level.SEVERE, "Token Validation is not active. No CSRF token in session.");
             }
         }
         return true;

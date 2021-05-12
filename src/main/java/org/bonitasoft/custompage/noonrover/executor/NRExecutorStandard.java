@@ -41,18 +41,18 @@ public class NRExecutorStandard extends NRExecutor {
             "No result to display",
             "Check your SQL request");
 
-    public ExecutorStream execute(ExecutorStream executorStream) throws NRException {
+    public NRStream execute(NRStream executorStream) throws NRException {
 
         executorStream.isOrderPossible = true;
         executorStream.isFilterPossible = true;
 
         // create the SQL Request
 
-        StringBuffer sqlRequest = new StringBuffer();
+        StringBuilder sqlRequest = new StringBuilder();
         sqlRequest.append("SELECT ");
-        StringBuffer groupBy = new StringBuffer();
+        StringBuilder groupBy = new StringBuilder();
         boolean existCol = false;
-        for (ResultsetColumn column : executorStream.result.listColumnset) {
+        for (ResultsetColumn column : executorStream.getResult().listColumnset) {
 
             if (column.attributeDefinition.relationTableName !=null)
             {
@@ -92,13 +92,13 @@ public class NRExecutorStandard extends NRExecutor {
 
         List<Object> listValues = new ArrayList<>();
 
-        StringBuffer whereClause = new StringBuffer();
+        StringBuilder whereClause = new StringBuilder();
         for (NRBusSelection.SelectionParameter parameter : executorStream.selection.listParameters) {
             if (parameter.value != null && parameter.value.toString().trim().length() > 0) {
                 if (whereClause.length() > 0)
                     whereClause.append(  " " + parameter.operand.toString() + " ");
 
-                StringBuffer condition = new StringBuffer();
+                StringBuilder condition = new StringBuilder();
                 condition.append( parameter.name + " " + NRBusDefinition.OperatorSql.get(parameter.operator) + " ");
 
                 if (parameter.operator == OPERATOR.ISNULL)
@@ -126,7 +126,7 @@ public class NRExecutorStandard extends NRExecutor {
         if (groupBy.length() > 0)
             sqlRequest.append( " GROUP BY " + groupBy.toString() );
         if (! executorStream.selection.listOrderBy.isEmpty()) {
-            StringBuffer orderClause = new StringBuffer();
+            StringBuilder orderClause = new StringBuilder();
             for (NRBusSelection.OrderByParameter orderByparam : executorStream.selection.listOrderBy) {
 
                 if (orderClause.length() > 0)
@@ -154,8 +154,7 @@ public class NRExecutorStandard extends NRExecutor {
             // format is 2018-04-05T07:00:00.000Z
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000'Z'");
             try {
-                Date dateParam = sdf.parse((String) value);
-                return dateParam;
+                return sdf.parse((String) value);                
             } catch (Exception e) {
                 throw new NRException(new BEvent(eventSqlError, "parameter[" + parameter.name + "] Value["
                         + parameter.value + "] exception:" + e.getMessage()));
@@ -175,7 +174,7 @@ public class NRExecutorStandard extends NRExecutor {
      * @return
      * @throws NRException
      */
-    protected static ExecutorStream executePreparedStatement(ExecutorStream executorStream, String sqlRequest,
+    protected static NRStream executePreparedStatement(NRStream executorStream, String sqlRequest,
             List<Object> listValues, NRBusResult result) throws NRException {
 
         PreparedStatement pstmt = null;

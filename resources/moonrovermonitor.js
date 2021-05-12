@@ -581,10 +581,10 @@ appCommand.controller('moonroverController',
 	/**
 	 * calculate the list of field to add / edit a record
 	 */
-	this.getListFields = function( recordData, headers )
+	this.getListFields = function( recordData, headers, insertWindow )
 	{
 		var listFields=[];
-		console.log("getListFields.header= "+angular.toJson(headers));
+		console.log("getListFields insert="+insertWindow+" .header= "+angular.toJson(headers));
 		for (var i in headers)
 		{
 			var oneHeader = headers[ i ]
@@ -595,10 +595,11 @@ appCommand.controller('moonroverController',
 			
 			var record = {'name': oneHeader.columnid, 'title': oneHeader.title,'type': oneHeader.type, 'value': '' };
 			record.show=true;
-			if (! oneHeader.isVisible)
+			if ( ! oneHeader.isVisible)
 				record.show=false;
-			/* bob if (oneHeader.columnid == 'PersistenceId')
-				record.show=false; */
+			 if (oneHeader.columnid === 'PersistenceId')
+				record.show=false; 
+			 
 			record.value = recordData[ oneHeader.columnid ];
 			
 			listFields.push( record );
@@ -615,7 +616,7 @@ appCommand.controller('moonroverController',
 		// prepare the data to display in the modal
 		this.edit.listrecords=[];
 		this.edit.sourcename 	= sourcename;
-		this.edit.listrecords 	= this.getListFields( recordData, headers );
+		this.edit.listrecords 	= this.getListFields( recordData, headers, false );
 		this.edit.operation 	= 'UPDATE';
 		this.edit.listevents 	= "";
 		this.openModalRecord();
@@ -626,7 +627,7 @@ appCommand.controller('moonroverController',
 		// prepare the data to display in the modal
 		this.edit.listrecords=[];
 		this.edit.sourcename 	= sourcename;
-		this.edit.listrecords 	= this.getListFields( {}, headers );
+		this.edit.listrecords 	= this.getListFields( {}, headers, true );
 		this.edit.operation 	= 'INSERT';
 
 		this.openModalRecord();
@@ -796,6 +797,16 @@ appCommand.controller('moonroverController',
 		}
 		return listHeader; // this.report.listheader;
 	}
+	this.getStyleResultHeader = function( header) {
+		console.log("Header="+angular.toJson( header ));
+		if (header.type === '_EDITRECORD')
+			return "width: 20px";
+		if (header.type === 'NUM')
+			return "width: 40px;text-align: right;";
+		if (header.type === 'BOOLEAN')
+			return "text-align: center;"					
+		return "";
+	}
 	this.getResultHeaderComplete = function() {
 		return this.report.listheader;
 		
@@ -808,9 +819,9 @@ appCommand.controller('moonroverController',
 		return this.report.listfooterdata;
 	}
 	
-	
 	this.getValue = function(record, header)
 	{
+		// console.log("getValue header="+angular.toJson(header) +"] from record["+angular.toJson( record ));
 		return record[ header.columnid ];
 	}
 	
@@ -869,6 +880,97 @@ appCommand.controller('moonroverController',
 		return this.display.pagination;
 	}
 
+	// -----------------------------------------------------------------------------------------
+	//  										Import
+	// -----------------------------------------------------------------------------------------
+
+	// -----------------------------------------------------------------------------------------
+	//  										Export
+	// -----------------------------------------------------------------------------------------
+	this.exportdata = { "maxrecordspertable" : 5000, "name":"", "availableexport" : []};
+	
+	// 		bob
+	this.launchExport = function() {
+		console.log("LauchExportData - inprogress");
+		
+		var self = this;
+		self.inprogress=true;
+		var source= [];
+		for (var key in this.exportdata.source) {
+		   	if ( this.exportdata.source [ key ] === true)
+		   		source.push( key );
+		}
+
+		var param={ "maxRecordsPerEntity" : this.exportdata.maxrecordspertable,
+				"name" : this.exportdata.name,
+				"entities": source };
+		console.log("Param ="+angular.toJson( param ));
+		
+		var json= encodeURIComponent( angular.toJson( param, false));
+		var d = new Date();
+		
+		var url='?page=custompage_moonrover&action=launchExportData&paramjson='+json+'&t='+d.getTime();
+		$http.get( url, this.getHttpConfig() )
+				.success( function ( jsonResult, statusHttp, headers, config ) {
+					
+					// connection is lost ?
+					if (statusHttp==401 || typeof jsonResult === 'string') {
+						console.log("Redirected to the login page !");
+						window.location.reload();
+					}
+
+				
+					self.inprogress						= false;
+					self.exportdata.listevents = jsonResult.listevents;
+					self.exportdata.availableexport = jsonResult.availableexport;
+
+
+					console.log("noonrover.exportData :In progress");
+					}
+				)
+				.error( function ( result ) {
+							self.inprogress						= false;
+							
+							}
+
+				);
+
+	}
+	
+	this.refreshExport = function() {
+		var self = this;
+		self.inprogress=true;
+		var source= [];
+
+		var d = new Date();
+		var json= '';
+
+		var url='?page=custompage_moonrover&action=refreshExportData&paramjson='+json+'&t='+d.getTime();
+		$http.get( url, this.getHttpConfig() )
+				.success( function ( jsonResult, statusHttp, headers, config ) {
+					
+					// connection is lost ?
+					if (statusHttp==401 || typeof jsonResult === 'string') {
+						console.log("Redirected to the login page !");
+						window.location.reload();
+					}
+				
+					self.inprogress						= false;
+					self.exportdata.listevents = jsonResult.listevents;
+					self.exportdata.exportfiles = jsonResult.exportfiles;
+
+					console.log("noonrover.exportData :In progress");
+					}
+				)
+				.error( function ( result ) {
+							self.inprogress						= false;
+							}
+
+				);
+
+	}
+	
+	
 	// -----------------------------------------------------------------------------------------
 	//  										tool
 	// -----------------------------------------------------------------------------------------

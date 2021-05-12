@@ -17,11 +17,12 @@ public class NRBusSelection {
     };
 
     public NRBusDefinition busDefinition;
+    public static final String CST_NAME_STANDARD = "Standard"; 
     public String name;
-    public List<NRBusSelection.SelectionParameter> listParameters = new ArrayList<NRBusSelection.SelectionParameter>();
+    public List<NRBusSelection.SelectionParameter> listParameters = new ArrayList<>();
     public TYPESELECTION typeFind;
 
-    public List<OrderByParameter> listOrderBy = new ArrayList<NRBusSelection.OrderByParameter>();
+    public List<OrderByParameter> listOrderBy = new ArrayList<>();
 
     /** selectionParameter */
     public static class SelectionParameter {
@@ -53,7 +54,7 @@ public class NRBusSelection {
     /**
      * simple mechanism to save a map of parameters Name / value
      */
-    public Map<String, Object> parametersValue = new HashMap<String, Object>();
+    public Map<String, Object> parametersValue = new HashMap<>();
 
     public String sqlText = null;
 

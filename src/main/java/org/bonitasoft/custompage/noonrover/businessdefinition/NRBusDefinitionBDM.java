@@ -28,17 +28,10 @@ public class NRBusDefinitionBDM extends NRBusDefinition {
     private static String logHeader = "NoonRover.cmd";
 
     
-    private static BEvent eventAPIError = new BEvent(NRBusDefinitionBDM.class.getName(), 6, Level.ERROR,
+    public static BEvent eventAPIError = new BEvent(NRBusDefinitionBDM.class.getName(), 6, Level.ERROR,
             "API Error", "Check the error", "Connection is lost", "Reconnect then check the error");
     
-    private static BEvent eventUpdateSuccess = new BEvent(NRBusDefinitionBDM.class.getName(), 7, Level.SUCCESS,
-            "Record updated", "Record updated with success");
-    private static BEvent eventInsertSuccess = new BEvent(NRBusDefinitionBDM.class.getName(), 8, Level.SUCCESS,
-            "Record inserted", "Record inserted with success");
-    private static BEvent eventOperationFailed = new BEvent(NRBusDefinitionBDM.class.getName(), 9, Level.APPLICATIONERROR,
-            "Operation failed", "The operation failed", "No update / insert was perform", "Check the status");
-
-    
+      
 /**
 Insert
 org.bonitasoft.engine.commons.exceptions.SRetryableException: javax.persistence.PersistenceException: org.hibernate.PropertyAccessException: could not get a field value by reflection getter of com.airtahitinui.bpm.TNWaiverCode.persistenceId
@@ -66,35 +59,11 @@ java.lang.IllegalArgumentException: Unknown entity: com.airtahitinui.bpm.TNWaive
         {
             CommandAPI commandAPI = TenantAPIAccessor.getCommandAPI(parameterSource.apiSession);
             PlatformAPI platformAPI = null;
-            NRBusCommandAPI nrCommandAPI = new NRBusCommandAPI();
+            NRBusCommandAPI nrCommandAPI = new NRBusCommandAPI(pageDirectory, commandAPI, platformAPI, tenantId);
             
-            listEvents.addAll( nrCommandAPI.checkAndDeployCommand(pageDirectory, commandAPI, platformAPI, tenantId).listEvents);
-            if (! BEventFactory.isError( listEvents))
-            {
-                HashMap<String, Serializable> parameters = new HashMap<>();
-                parameters.put(NRBusCmdControl.CST_TENANTID, tenantId);
-                BusinessObject businessObject = (BusinessObject) parameterSource.businessDefinition.getObjectTransported();
-                // something like com.airtahitinui.bpm.TNWaiverCode
-                parameters.put(NRBusCmdControl.CST_BUSINESSNAME, businessObject.getQualifiedName());
-                HashMap<String,Object> record = new HashMap<>();
-                if (parameterSource.listRecords!=null)
-                    for (Map<String,Object> oneRecordParameter : parameterSource.listRecords)
-                    {
-                        record.put((String) oneRecordParameter.get("name"), oneRecordParameter.get( "value"));
-                    }
-                parameters.put(NRBusCmdControl.CST_RECORD, record);
-                logger.info(logHeader+" Update BDM with record["+record+"]");
-                
-                Map<String, Object> resultUpdate= nrCommandAPI.callCommand(parameters,tenantId, commandAPI);
-                
-                if (NRBusCmdControl.CST_STATUS_V_OKUPDATE.equals( resultUpdate.get(NRBusCmdControl.CST_STATUS)))
-                    listEvents.add( eventUpdateSuccess);
-                else if (NRBusCmdControl.CST_STATUS_V_OKINSERT.equals( resultUpdate.get(NRBusCmdControl.CST_STATUS)))
-                    listEvents.add( eventInsertSuccess);
-                else 
-                    listEvents.add( new BEvent( eventOperationFailed, (String) resultUpdate.get(NRBusCmdControl.CST_STATUS)));
-                
-            }
+            BusinessObject businessObject = (BusinessObject) parameterSource.businessDefinition.getObjectTransported();
+
+            listEvents.addAll( nrCommandAPI.callUpdate(businessObject, parameterSource.listRecords));
         }
         catch( Exception e)
         {

@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.bonitasoft.custompage.noonrover.businessdefinition.NRBusResult;
-import org.bonitasoft.custompage.noonrover.executor.NRExecutor;
+import org.bonitasoft.custompage.noonrover.executor.NRStream;
 import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox.NRException;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
@@ -21,10 +21,11 @@ public class NRResultSetCsv extends NRResultSet {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss Z");
 
-    public NRExecutor.ExecutorStream execute(NRExecutor.ExecutorStream executorStream) throws NRException {
+    public NRStream execute(NRStream executorStream) throws NRException {
         try {
-            executorStream.openDirectOutput("application/vnd.ms-excel", executorStream.name + ".csv"); //
-            StringBuffer lineHeader = new StringBuffer();
+            executorStream.setContentType("application/vnd.ms-excel", executorStream.name + ".csv"); //
+
+            StringBuilder lineHeader = new StringBuilder();
             for (Map<String, Object> column : executorStream.listHeader) {
                 if (lineHeader.length() > 0)
                     lineHeader.append(";");
@@ -39,7 +40,7 @@ public class NRResultSetCsv extends NRResultSet {
 
             // now all lines
             for (Map<String, Object> record : executorStream.listData) {
-                lineHeader = new StringBuffer();
+                lineHeader = new StringBuilder();
                 for (Map<String, Object> column : executorStream.listHeader) {
                     if (lineHeader.length() > 0)
                         lineHeader.append(";");
@@ -54,7 +55,7 @@ public class NRResultSetCsv extends NRResultSet {
                 }
                 executorStream.writeDirectOutput(lineHeader.toString() + "\n");
             }
-            executorStream.closeDirectOutput();
+            executorStream.endDirectOutput();
 
         } catch (IOException e) {
             executorStream.listEvents.add(new BEvent(eventOutputInError, e, ""));

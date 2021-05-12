@@ -18,7 +18,7 @@ public class NRBusDefinitionFactory {
             Level.APPLICATIONERROR, "Definition not exist", "A source is given, but not found",
             "Action is not possible", "Report it as a bug");
 
-    private Map<String, NRBusDefinition> setBusinessDefinition = new HashMap<String, NRBusDefinition>();
+    private Map<String, NRBusDefinition> setBusinessDefinition = new HashMap<>();
 
     public static NRBusDefinitionFactory getInstance() {
         return new NRBusDefinitionFactory();
@@ -29,6 +29,12 @@ public class NRBusDefinitionFactory {
         setBusinessDefinition.put(businessDefinition.getName(), businessDefinition);
         return businessDefinition;
     }
+    
+    /**
+     * Create and register this BusinessObject in the factory
+     * @param businessObject
+     * @return
+     */
     public NRBusDefinition createDataDefinitionBDM( BusinessObject businessObject ) {
         NRBusDefinitionBDM businessDefinition = new NRBusDefinitionBDM( businessObject );
         
@@ -51,7 +57,7 @@ public class NRBusDefinitionFactory {
     public NRBusDefinition fromJson(APISession apiSession, Map<String, Object> requestJson) throws NRException {
 
         // is there are nothing in the cache? Then, reload it :-(
-        if (setBusinessDefinition.size() == 0) {
+        if (setBusinessDefinition.isEmpty()) {
             // let call the SourceFactory instance, which load all the busDefinition in this factory
             NRSourceFactory sourceFactory = NRSourceFactory.getInstance();
             referenceSources(apiSession, sourceFactory);
@@ -73,7 +79,7 @@ public class NRBusDefinitionFactory {
      */
     public void referenceSources(APISession apiSession, NRSourceFactory sourceFactory) {
         for (NRSource source : sourceFactory.getSources()) {
-            source.getListBusinessDefinition(apiSession, this);
+            source.loadBusinessDefinition(apiSession, this);
         }
     }
 

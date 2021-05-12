@@ -115,7 +115,7 @@ public class Actions {
         
         try {
             String action=request.getParameter("action");
-            logger.info("#### log:Actions  action is["+action+"] !");
+            logger.info("#### log:Actions  action is["+action+"]");
             if (action==null || action.length()==0 )
             {
                 actionAnswer.isManaged=false;
@@ -124,10 +124,13 @@ public class Actions {
             }
             actionAnswer.isManaged=true;
             
-            if (! TokenValidator.checkCSRFToken(request, response)) {
-                    actionAnswer.isResponseMap=false;
-                    return actionAnswer;
-            }            
+            // No CSRF Token on Export
+            if (! "exportfile".equals(action)) {
+                if (! TokenValidator.checkCSRFToken(request, response)) {
+                        actionAnswer.isResponseMap=false;
+                        return actionAnswer;
+                }            
+            }
             
             APISession apiSession = pageContext.getApiSession();
             HttpSession httpSession = request.getSession();            
@@ -234,9 +237,40 @@ public class Actions {
                 actionAnswer.responseMap = NoonRoverAccessAPI.listRequests( ParameterSource.getInstanceFromJson(apiSession, paramJsonSt), pageResourceProvider );
             
             }
-             
-            // actionAnswer.responseMap.put("listevents",BEventFactory.getHtml( listEvents));
+            
+            if ("launchExportData".equals(action))
+            {
+                NoonRoverAccessAPI NoonRoverAccessAPI = NoonRoverAccessAPI.getInstance();
+                actionAnswer.responseMap = NoonRoverAccessAPI.launchExportData( ParameterSource.getInstanceFromJson(apiSession, paramJsonSt), pageResourceProvider,
+                    pageDirectory,
+                    tenantId,
+                    tenantServiceAccessor );                
+            }
+            
+            if ("refreshExportData".equals(action)) {
+                NoonRoverAccessAPI noonRoverAccessAPI = NoonRoverAccessAPI.getInstance();
+                actionAnswer.responseMap = noonRoverAccessAPI.refreshExportData( ParameterSource.getInstanceFromJson(apiSession, paramJsonSt), pageResourceProvider,
+                    pageDirectory,
+                    tenantId,
+                    tenantServiceAccessor );
+             }
+             else if ("exportfile".equals(action)) {
+                String fileName = request.getParameter("name");
+                logger.info("#### log:Actions exportfile on name["+fileName+"]");
                 
+                // then add the name and the correct content type
+                response.addHeader("content-disposition", "attachment; filename="+fileName);
+                response.addHeader("content-type", "application/zip");
+                        
+               OutputStream output = response.getOutputStream();
+               NoonRoverAccessAPI noonRoverAccessAPI = NoonRoverAccessAPI.getInstance();
+               noonRoverAccessAPI.exportDataFile( output, fileName, pageDirectory );
+        
+                output.flush();
+                output.close();
+                actionAnswer.isResponseMap=false;
+                return actionAnswer;
+             }                
             
             logger.info("#### log:Actions END responseMap ="+actionAnswer.responseMap.size());
             return actionAnswer;

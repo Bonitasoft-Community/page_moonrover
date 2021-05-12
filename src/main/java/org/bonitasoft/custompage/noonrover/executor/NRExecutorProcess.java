@@ -4,7 +4,7 @@ import org.bonitasoft.custompage.noonrover.toolbox.NRToolbox.NRException;
 
 public class NRExecutorProcess extends NRExecutor {
 
-    public NRExecutor.ExecutorStream execute(NRExecutor.ExecutorStream requestData) throws NRException {
+    public NRStream execute(NRStream requestData) throws NRException {
         return requestData;
     }
 

@@ -12,13 +12,13 @@
     <title>Moonrover</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/animate.css" />
-    <link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/bootstrap.min.css">
-	<link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/main.css">
-	<link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/style.css">
-	<link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/dropbox.css">
-	<link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/custompage.css">
-    <link rel="stylesheet" href="pageResource?page=custompage_moonrover&location=style/ng-modal.css">
+    <link rel="stylesheet" href="style/animate.css" />
+    <link rel="stylesheet" href="style/bootstrap.min.css">
+	<link rel="stylesheet" href="style/main.css">
+	<link rel="stylesheet" href="style/style.css">
+	<link rel="stylesheet" href="style/dropbox.css">
+	<link rel="stylesheet" href="style/custompage.css">
+    <link rel="stylesheet" href="style/ng-modal.css">
 
 
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -36,8 +36,8 @@
 
 <!--  Page Directory: @_PAGEDIRECTORY_@ -->
 <center>
-	<table><tr><td><h1>Moon Rover</h1></td><td rowspan="2"><img src="pageResource?page=custompage_moonrover&location=img/moonrover.jpg" width="150" heigth="150" /></td></tr>
-		<tr><td style="font-size:0.8em">2.4.1</td></tr>
+	<table><tr><td><h1>Moon Rover</h1></td><td rowspan="2"><img src="img/moonrover.jpg" width="150" heigth="150" /></td></tr>
+		<tr><td style="font-size:0.8em">2.5.0</td></tr>
 	</table>
 </center>
 
@@ -160,6 +160,16 @@
 				ng-show="ctrl.display.isadmin">
 				  <a ng-click="ctrl.navbaractiv = 'builder';"   class="ng-binding">Form Builder</a>				 
 			</li>
+			<li ng-class="{active: active, disabled: false}" id="form-tab" heading="builder" active="true" title="Import" 
+				select="ctrl.navbaractiv === 'import'" class="{{ctrl.getNavClass('import')}}" style="{{ctrl.getNavStyle('import')}}"
+				ng-show="ctrl.display.isadmin">
+				  <a ng-click="ctrl.navbaractiv = 'import';"   class="ng-binding">Import</a>				 
+			</li>
+			<li ng-class="{active: active, disabled: false}" id="form-tab" heading="builder" active="true" title="Export" 
+				select="ctrl.navbaractiv === 'export'" class="{{ctrl.getNavClass('export')}}" style="{{ctrl.getNavStyle('export')}}"
+				ng-show="ctrl.display.isadmin">
+				  <a ng-click="ctrl.navbaractiv = 'export';"   class="ng-binding">Export</a>				 
+			</li>
 		</ul>
 	
 	<p>
@@ -187,7 +197,7 @@
  	<div class="col-lg-12" ng-show="ctrl.navbaractiv.startsWith('form')">
 		<div class="panel panel-info">
 			<div class="panel-heading">
-				Form 
+				Form {{ctrl.form.requestname}}
 				
 			</div>
 			<div class="panel-body">
@@ -276,11 +286,146 @@
 				
 			</div> <!--  end panel body -->
 		</div> <!--  end panel info -->
+		<!--  --------------------------------  EXECUTION FORM---------------------------- -->
+		<div class="col-lg-12">
+			<div ng-show="ctrl.inprogress">
+				<span class="Loading">.</span>Please wait, work in progress
+			</div>
+			<button ng-click="ctrl.runRequestConfiguration('')" class="btn btn-info" ng-disabled="ctrl.inprogress || ctrl.request.sourcename==''">
+				<div class="glyphicon glyphicon-refresh"></div>	Search
+			</button>
+	
+			<div ng-bind-html="ctrl.getListEvents(ctrl.report.listevents )"></div>
+			<p>
+			<!--  Export CSV -->
+			<table>
+				<tr>
+					<td>
+						<fieldset ng-disabled="ctrl.report.nbrecords==0">
+							<a ng-click="ctrl.getLocalExcel()" title="Click to export to Excel file"><img src="img/docexcel.gif"/></a> Current page
+						</fieldset>
+					</td>
+					<td style="border:2px solid;border-color: #3498db; border-radius: 4px">
+						<table>
+						<tr><td>
+							Limitation: <input type="number" ng-model="ctrl.display.maxCsvValue"  style="font-size: 10px; padding: 1px 1px 1px 1px;">
+						</td><td>
+						<fieldset ng-disabled="ctrl.report.nbrecords==0">
+							<a href="?page=custompage_moonrover&action=excelRequest&maxCsvValue={{ctrl.display.maxCsvValue}}"   title="Click to export all the data (limited to the limitation)to Excel file"><img src="img/docexcel.gif"/></a> All Datas
+						</fieldset>
+						</tr></tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+			<p>
+			<h1>{{ctrl.request.displayname}}</h1>
+			<table>
+				<tr><td colspan="2"><div class="well">{{ctrl.request.description}}</div></td></tr>
+				<tr><td>Source:</td><td>{{ctrl.request.sourcename}}</td></tr>
+				<tr><td>TableName:</td><td>{{ctrl.request.tablename}}</td></tr>		
+			</table>
+			
+		    <p> 
+			<table class="table table-striped table-hover table-condensed">
+				<th ng-repeat="header in ctrl.getResultHeader() track by $index" style="background-color: #99D9EA  ">
+		        	<div style="text-align: center;">{{header.title}}
+		            <a ng-show="header.isOrderer == true" href="#" ng-click="ctrl.setOrder( header.columnid, ! ctrl.isAscendantSort());" style="text-decoration:none">
+								<span ng-show="ctrl.getOrderByField() !== header.columnid" class="glyphicon glyphicon-minus">-</span>
+								<span ng-show="ctrl.getOrderByField() === header.columnid && ! ctrl.isAscendantSort()" class="glyphicon glyphicon-chevron-down"></span>
+								<span ng-show="ctrl.getOrderByField() === header.columnid && ctrl.isAscendantSort() " class="glyphicon glyphicon-chevron-up"></span>
+					</a>
+					</div>
+		        	<div ng-show="header.isfilter">
+		            	<br><input type="text" ng-model="ctrl.report.filterrecord[ header.name ]" size="15">
+		            </div>
+		        </th>
+
+		        <tr ng-repeat="record in ctrl.getResultData() track by $index">
+					<td ng-repeat="header in ctrl.getResultHeader() track by $index" style="{{ctrl.getStyleResultHeader( header)}}">
+							<div ng-show="header.type === '_EDITRECORD'">
+								<a href="#" ng-click="ctrl.editRecord( record, ctrl.getResultHeaderComplete(), ctrl.request.sourcename)"><span class="glyphicon glyphicon-pencil"></span></a>
+							</div>
+							<div ng-show="header.type === 'STRING'">
+								{{ctrl.getValue(record, header)}}
+							</div>
+							<div ng-show="header.type === 'NUM'">
+								{{ctrl.getValue(record, header)}}
+							</div>
+						<div ng-show="header.type === 'DATE'" >
+								{{ctrl.getValue(record, header) | date}}
+							</div>
+							<div ng-show="header.type === 'BOOLEAN'" style="text-align: center;">
+								{{ctrl.getValue(record, header)}}
+							</div>
+							</td>
+	
+						</td>
+				</tr>
+				
+				
+				<!-- footer -->
+				<tbody ng-repeat="record in ctrl.getResultFooterData() track by $index">
+					<tr >
+						<td ng-repeat="header in ctrl.getResultHeader() track by $index" style="background-color:#ffe458">
+							
+							<div ng-show="header.type === 'STRING'">
+								{{ctrl.getValue(record, header)}}
+							</div>
+							<div ng-show="header.type === 'NUM'" style="text-align: right;">
+								{{ctrl.getValue(record, header)}}
+							</div>
+						<div ng-show="header.type === 'DATE'" >
+								{{ctrl.getValue(record, header) | date}}
+							</div>
+							<div ng-show="header.type === 'BOOLEAN'" style="text-align: center;">
+								{{ctrl.getValue(record, header)}}
+							</div>
+							</td>
+	
+						</td>
+					</tr>
+	
+				<!--  SUMMARY Record -->
+			</table>
+			
+			
+			<!--  pagination -->
+			<div ng-show="ctrl.inprogress">
+				<span class="Loading">.</span>Please wait, work in progress
+			</div>
+			<fieldset ng-disabled="ctrl.inprogress || ctrl.request.sourcename==''"> 		
+				<table>
+					<tr><td>
+						Number total of record: {{ctrl.report.nbrecords}}. Lines par page:
+						<select ng-model="ctrl.display.numberperpage" ng-options="x.name for x in ctrl.getStepPagination()" ng-change="ctrl.runRequestConfiguration()">
+						</select>
+						
+					</td></tr>
+					<tr><td>
+						<pagination ng-model="ctrl.display.pagenumber"
+								total-items="ctrl.display.totallines"
+								items-per-page="ctrl.display.numberperpage.value"
+								ng-click="ctrl.runRequestConfiguration()"	
+								boundary-links="true" 
+								max-size="5"
+								boundary-link-numbers="true"
+								rotate="true"
+								force-ellipses="true"
+								ng-disabled="ctrl.inprogress">
+						</pagination>
+		
+					</td></tr>
+				</table>
+			</fieldset>
+					
+			<button ng-show="ctrl.allowAddRecord()" class="btn btn-primary btn-xs" ng-click="ctrl.addRecord(ctrl.getResultHeader(), ctrl.request.sourcename)">Add a record</button>
+		</div> <!--  end execution -->
  	</div> <!--  end panel -->
  
  
- 	<!--  --------------------------------  FORM BUILDER ---------------------------- --> 
- 	 <!--  ************************************************************  -->	
+ 
+	<!--  ************************************************************  -->	
 	<!--  FORM BUILDER 		 										-->
 	<!--  ************************************************************  -->		
 		
@@ -296,488 +441,567 @@
 				</a>
 			Form Builder
 			</div>
-		<div class="panel-body" ng-show="ctrl.display.showfilter">
-			<div class="col-lg-8">
-				<table class="table  table-condensed" width="100%" >
-				<tr>
-					<td>
-					
-						<div ng-show="ctrl.inprogress">
-							<span class="Loading">.</span>Please wait, work in progress
-						</div>
-						Source: <select ng-model="ctrl.request.sourcename" ng-change="ctrl.setSource()" >
-							<option ng-repeat="item in ctrl.getListSources()" value="{{item.sourcename}}" ng-selected="item.sourcename == ctrl.request.sourcename">{{item.displayname}}</option>
-						</select>
-		
-						<div ng-bind-html="ctrl.getListEvents(ctrl.definition.listevents )"></div>
-					</td>
-					<td>
-						<table>
-							<tr>
-								<td><span style="font-size: small;font-style:italic">Advanced configuration:</span></td>
-								<td>
-									<label class="switch">
-		  								<input type="checkbox" ng-model="ctrl.display.showadvance">
-		  								<span class="slider round"></span>
-									</label>
-								</td>
-							</tr>
-							<tr>
-								<td><span style="font-size: small;font-style:italic">Hide filter at execution:</span></td>
-								<td>
-									<label class="switch">
-							  			<input type="checkbox" ng-model="ctrl.display.hidefilteratexecution">
-							  			<span class="slider round"></span>
-									</label>
-								</td>
-							</tr>
-							
-						</table>
-	
-	
-								
-						<div class="alert alert-defaut">
-							<table><tr ng-show="ctrl.display.showadvance"><td>Source:</td><td>{{ctrl.request.source.sourcename}}</td></tr>
-								<tr ng-show="ctrl.display.showadvance"><td>Type:</td><td>{{ctrl.request.source.type}}</td></tr>
-								<tr><td ng-show="ctrl.display.showadvance">Description:</td><td>{{ctrl.request.source.description}}</td></tr>
-							</table>
-						</div>
-					</td>
-					
-				</tr>
-			    </table>
-			</div> 
+			<div class="panel-body" ng-show="ctrl.display.showfilter">
+				<div class="col-lg-8">
+					<table class="table  table-condensed" width="100%" >
+					<tr>
+						<td>
+						
+							<div ng-show="ctrl.inprogress">
+								<span class="Loading">.</span>Please wait, work in progress
+							</div>
+							Source: <select ng-model="ctrl.request.sourcename" ng-change="ctrl.setSource()" >
+								<option ng-repeat="item in ctrl.getListSources()" value="{{item.sourcename}}" ng-selected="item.sourcename == ctrl.request.sourcename">{{item.displayname}}</option>
+							</select>
 			
-			<div class="col-lg-4" ng-show="ctrl.display.showfilter">
-			<div class="panel panel-warning"  ng-show="ctrl.display.showadvance" >
-				<div class="panel-heading">
-					Save
-				</div>
-				<div>
-					<table style="width:100%">
-						<tr>
-							<td>Save As:</td><td><input type="text" ng-model="ctrl.saveinfo.name" maxlength="30"/></td>
-						</tr>
-						<tr>
-							<td>Description:</td><td> <input type="text" ng-model="ctrl.saveinfo.description"  maxlength="50"/></td>
-						</tr>
-						<tr>
-							<td colspan="2" style="text-align:center"><button class="btn btn-success" ng-click="ctrl.saveRequest();" ng-disabled="ctrl.inprogress || ctrl.request.sourcename==''">Save</button></td>
-						</tr>
-						<tr>
-							<td colspan="2"> <div ng-bind-html="ctrl.getListEvents(ctrl.saveinfo.listevents )"></div></td>
-						</tr>
-					</table>
-					
-					<div  style="padding: 10px 10px 20px 20px">
-						<table class="table table-striped table-hover table-condensed">
-							<tr>
-								<th>Name</th>
-								<th>Description</th>
-								<th>Action</th>
-							</tr>
-							<tr ng-repeat="item in ctrl.getListRequests()">
-								<td>{{item.name}}</td>
-								<td>{{item.description}}</td>
-								<td><button  class="btn btn-info btn-xs" ng-click="ctrl.loadRequest(item)" >Load</button>
-									&nbsp;<button  class="btn btn-danger btn-xs" ng-click="ctrl.deleteRequest(item.name)" ><span class="glyphicon glyphicon-remove" aria-hidden="true" style="color: white;"></span>Remove</button>
-								</td>
-							</tr>
-						</table>
+							<div ng-bind-html="ctrl.getListEvents(ctrl.definition.listevents )"></div>
+						</td>
+						<td>
+							<table>
+								<tr>
+									<td><span style="font-size: small;font-style:italic">Advanced configuration:</span></td>
+									<td>
+										<label class="switch">
+			  								<input type="checkbox" ng-model="ctrl.display.showadvance">
+			  								<span class="slider round"></span>
+										</label>
+									</td>
+								</tr>
+								<tr>
+									<td><span style="font-size: small;font-style:italic">Hide filter at execution:</span></td>
+									<td>
+										<label class="switch">
+								  			<input type="checkbox" ng-model="ctrl.display.hidefilteratexecution">
+								  			<span class="slider round"></span>
+										</label>
+									</td>
+								</tr>
+								
+							</table>
+		
+		
+									
+							<div class="alert alert-defaut">
+								<table><tr ng-show="ctrl.display.showadvance"><td>Source:</td><td>{{ctrl.request.source.sourcename}}</td></tr>
+									<tr ng-show="ctrl.display.showadvance"><td>Type:</td><td>{{ctrl.request.source.type}}</td></tr>
+									<tr><td ng-show="ctrl.display.showadvance">Description:</td><td>{{ctrl.request.source.description}}</td></tr>
+								</table>
+							</div>
+						</td>
+						
+					</tr>
+				    </table>
+				</div> 
+			
+				<div class="col-lg-4" ng-show="ctrl.display.showfilter">
+					<div class="panel panel-warning"  ng-show="ctrl.display.showadvance" >
+						<div class="panel-heading">
+							Save
+						</div>
+						<div>
+							<table style="width:100%">
+								<tr>
+									<td>Save As:</td><td><input type="text" ng-model="ctrl.saveinfo.name" maxlength="30"/></td>
+								</tr>
+								<tr>
+									<td>Description:</td><td> <input type="text" ng-model="ctrl.saveinfo.description"  maxlength="50"/></td>
+								</tr>
+								<tr>
+									<td colspan="2" style="text-align:center"><button class="btn btn-success" ng-click="ctrl.saveRequest();" ng-disabled="ctrl.inprogress || ctrl.request.sourcename==''">Save</button></td>
+								</tr>
+								<tr>
+									<td colspan="2"> <div ng-bind-html="ctrl.getListEvents(ctrl.saveinfo.listevents )"></div></td>
+								</tr>
+							</table>
+							
+							<div  style="padding: 10px 10px 20px 20px">
+								<table class="table table-striped table-hover table-condensed">
+									<tr>
+										<th>Name</th>
+										<th>Description</th>
+										<th>Action</th>
+									</tr>
+									<tr ng-repeat="item in ctrl.getListRequests()">
+										<td>{{item.name}}</td>
+										<td>{{item.description}}</td>
+										<td><button  class="btn btn-info btn-xs" ng-click="ctrl.loadRequest(item)" >Load</button>
+											&nbsp;<button  class="btn btn-danger btn-xs" ng-click="ctrl.deleteRequest(item.name)" ><span class="glyphicon glyphicon-remove" aria-hidden="true" style="color: white;"></span>Remove</button>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
 					</div>
-				</div>
-			</div>
-			</div> <!--  end save -->
+					</div> <!--  end save -->
 			
 		
 	
 
-			<!--  SELECTION (COLUMNS  (ctrl.request.selection & ctrl.request.selection ) -->
-			<div class="col-lg-6">
-			<div class="panel panel-info" >
-				<div class="panel-heading">
-					Selection
-				</div>
-				<div class="panel-body">
- 
-					Selection : <select ng-model="ctrl.request.selection_name" ng-change="ctrl.setSelection()" > 
-						<option ng-repeat="item in ctrl.getListSelection()" value="{{item.name}}" ng-selected="item.name == ctrl.request.selection.name">{{item.name}}</option>
-					</select>
-		
-					<div ng-show="ctrl.request.selection.type==='SQL'" style="padding: 10px 10px 20px 20px">
-						Sql Request<br>
-						 
-						<textarea ng-model="ctrl.request.selection.sqltext" rows="4" cols="80" maxlength="2000"></textarea>
-						
-						<br>
-						Parameters (use the marker :parameterName in the request, no blanck):
+				<!--  SELECTION (COLUMNS  (ctrl.request.selection & ctrl.request.selection ) -->
+				<div class="col-lg-6">
+				<div class="panel panel-info" >
+					<div class="panel-heading">
+						Selection
+					</div>
+					<div class="panel-body">
+	 
+						Selection : <select ng-model="ctrl.request.selection_name" ng-change="ctrl.setSelection()" > 
+							<option ng-repeat="item in ctrl.getListSelection()" value="{{item.name}}" ng-selected="item.name == ctrl.request.selection.name">{{item.name}}</option>
+						</select>
+			
+						<div ng-show="ctrl.request.selection.type==='SQL'" style="padding: 10px 10px 20px 20px">
+							Sql Request<br>
+							 
+							<textarea ng-model="ctrl.request.selection.sqltext" rows="4" cols="80" maxlength="2000"></textarea>
+							
+							<br>
+							Parameters (use the marker :parameterName in the request, no blanck):
+								<table class="table">
+									<tr>
+									<td>	
+										<table class="table table-striped table-hover table-condensed">
+											<tr>
+												<th>Name (no blanck)</th>
+												<th>Value</th>
+												<th>Type</th>
+												<th></th>
+											</tr>
+											<tbody ng-repeat="sqlParam in ctrl.getListSqlParameters() track by $index" >
+											<tr>
+												<td>
+													<input ng-model="sqlParam.name" type="text" maxlength="30"/>
+												</td>
+												<td>
+													!--  angularJS does not allow to have here the same name for the numeric value and the string value --
+													<input ng-show="sqlParam.type =='NUM'" type="number" ng-model="sqlParam.value"/>
+													<input ng-show="sqlParam.type =='STRING'" type="text" ng-model="sqlParam.value"	maxlength="30"/>
+									
+												</td>
+												<td>
+													<select ng-model="sqlParam.type"  >
+														<option ng-repeat="item in ctrl.getListTypesField()" value="{{item.value}}" ng-selected="item.value == sqlParam.type">{{item.name}}</option>
+													</select>
+								
+												</td>
+												<td>
+													<button  class="btn btn-danger btn-xs" ng-click="ctrl.deleteSqlParameter( sqlParam.index)" ><span class="glyphicon glyphicon-remove" aria-hidden="true" style="color: white;"></span>Remove</button>
+												</td>										
+											</tr>
+											</tbody>
+			
+										</table>
+									</td>
+									<td style="vertical-align:top">
+										<button ng-click=" ctrl.addSqlParameter()" class="btn btn-primary btn-xs">Add Parameters</button>
+									</td>
+								</tr>
+								</table>
+						</div>
+						<div ng-show="! (ctrl.request.selection.type==='SQL')" style="padding: 10px 10px 20px 20px">
+			
+			
+							<table class="table table-striped table-hover table-condensed">
+							<tr ng-show="ctrl.display.showadvance">
+							<td colspan="3"></td>
+							<td >
+								 <button ng-click="ctrl.request.selection.showAll=true" ng-class="ctrl.getButtonClass(ctrl.request.selection.showAll)" ng-disabled="ctrl.request.selection.showAll===true">Show all</button>
+								 <button ng-click="ctrl.request.selection.showAll=false" ng-class="ctrl.getButtonClass( ! ctrl.request.selection.showAll)" ng-disabled="ctrl.request.selection.showAll===false">Show only active</button><br>
+								 <button ng-click="ctrl.selectAllParameters( true, ctrl.request.selection.parameters )" class="btn btn-default btn-xs" >Select all</button>
+								 <button ng-click="ctrl.selectAllParameters( false, ctrl.request.selection.parameters )" class="btn btn-default  btn-xs" >Unselect</button>
+							</td>
+							<td></td>
+							</tr>
+							<tr  ng-show="ctrl.display.showadvance">
+								<th style="text-align: center;">Parameter</th>
+								<th style="text-align: center;" ng-show="ctrl.request.selection.type=='STD'">Operator</th>
+								<th style="text-align: center;" colspan="2">Value</th>
+								<th style="text-align: center;" ng-show="ctrl.display.showadvanceced">Visible</th>
+							</tr>
+							<tbody ng-repeat="fieldParameter in ctrl.getListParameters() track by $index" >
+							<tr ng-show="ctrl.isSelectionFieldVisible( fieldParameter )">
+								<td>{{fieldParameter.name}}</td>
+								<td  style="text-align: center;" ng-show="ctrl.request.selection.type=='STD'">
+									<select ng-model="fieldParameter.operator"  >
+										<option ng-repeat="item in ctrl.getListOperator(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.operator">{{item.name}}</option>
+									</select>
+								</td>
+								<td>
+			
+									<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.value"	size="{{fieldParameter.length}}">
+									<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
+									<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
+			
+									<div ng-show="fieldParameter.type =='SELECT' ">
+										<select ng-model="fieldParameter.value">
+											<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
+										</select>
+									</div>
+									<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
+										<select ng-model="fieldParameter.value">
+											<option ng-repeat="operator  in searchctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
+										</select>
+									</div>
+									<div ng-show="fieldParameter.type =='BOOLEAN' ">
+										<select ng-model="fieldParameter.value">
+										<option ng-repeat="item in ctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
+										</select>
+									</div>
+			        			</td>
+			        			<td>
+									<div ng-show="fieldParameter.operator == 'RANGE'">
+										To &nbsp;<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.valueTo"	size="{{fieldParameter.length}}">
+										<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
+										<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
+				
+										<div ng-show="fieldParameter.type =='SELECT' ">
+											<select ng-model="fieldParameter.valueTo">
+												<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
+											</select>
+										</div>
+										<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
+											<select ng-model="fieldParameter.valueTo">
+												<option ng-repeat="operator  in searchctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
+											</select>
+										</div>
+										<div ng-show="fieldParameter.type =='BOOLEAN' ">
+											<select ng-model="fieldParameter.valueTo">
+												<option ng-repeat="item in ctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
+											</select>
+										</div>
+									
+									</div>
+			        			</td>
+			        			<td ng-show="ctrl.display.showadvance"><input type="checkbox" ng-model="fieldParameter.visible"></input></td>
+			      			</td>
+			        		</tr>
+			        		</tbody>
+							</table>
+						</div> <!-- end type SQL -->
+						<!--  order ? -->
+						<div ng-show="ctrl.request.selection.type=='STD'">
+							Order by:
 							<table class="table">
 								<tr>
 								<td>	
 									<table class="table table-striped table-hover table-condensed">
 										<tr>
-											<th>Name (no blanck)</th>
-											<th>Value</th>
-											<th>Type</th>
-											<th></th>
+											<th>Column</th>
+											<th>Direction</th>
 										</tr>
-										<tbody ng-repeat="sqlParam in ctrl.getListSqlParameters() track by $index" >
+										<tbody ng-repeat="fieldOrder in ctrl.getListColumnsOrders() track by $index" >
 										<tr>
 											<td>
-												<input ng-model="sqlParam.name" type="text" maxlength="30"/>
-											</td>
-											<td>
-												!--  angularJS does not allow to have here the same name for the numeric value and the string value --
-												<input ng-show="sqlParam.type =='NUM'" type="number" ng-model="sqlParam.value"/>
-												<input ng-show="sqlParam.type =='STRING'" type="text" ng-model="sqlParam.value"	maxlength="30"/>
-								
-											</td>
-											<td>
-												<select ng-model="sqlParam.type"  >
-													<option ng-repeat="item in ctrl.getListTypesField()" value="{{item.value}}" ng-selected="item.value == sqlParam.type">{{item.name}}</option>
+												<select ng-model="fieldOrder.columnid">
+													<option ng-repeat="item in ctrl.getListColumnsResult()" value="{{item.name}}" ng-selected="item.name == fieldOrder.columnid">{{item.name}}</option>
 												</select>
-							
 											</td>
 											<td>
-												<button  class="btn btn-danger btn-xs" ng-click="ctrl.deleteSqlParameter( sqlParam.index)" ><span class="glyphicon glyphicon-remove" aria-hidden="true" style="color: white;"></span>Remove</button>
-											</td>										
+												<select ng-model="fieldOrder.direction">
+													<option ng-repeat="item in ctrl.getListOrderDirection(fieldOrder)" value="{{item.value}}" ng-selected="item.value == fieldOrder.direction">{{item.name}}</option>
+												</select>
+												</td>
 										</tr>
-										</tbody>
-		
+										</tbody>				
 									</table>
 								</td>
 								<td style="vertical-align:top">
-									<button ng-click=" ctrl.addSqlParameter()" class="btn btn-primary btn-xs">Add Parameters</button>
+									<button ng-click=" ctrl.addColumnsOrder()" class="btn btn-primary btn-xs">Add orderBy</button>
 								</td>
 							</tr>
 							</table>
+						
+						</div> <!--  end type STD -->
 					</div>
-					<div ng-show="! (ctrl.request.selection.type==='SQL')" style="padding: 10px 10px 20px 20px">
+				</div> <!--  end panel -->
+				</div> <!--  end Selection -->
 		
-		
-						<table class="table table-striped table-hover table-condensed">
-						<tr ng-show="ctrl.display.showadvance">
-						<td colspan="3"></td>
-						<td >
-							 <button ng-click="ctrl.request.selection.showAll=true" ng-class="ctrl.getButtonClass(ctrl.request.selection.showAll)" ng-disabled="ctrl.request.selection.showAll===true">Show all</button>
-							 <button ng-click="ctrl.request.selection.showAll=false" ng-class="ctrl.getButtonClass( ! ctrl.request.selection.showAll)" ng-disabled="ctrl.request.selection.showAll===false">Show only active</button><br>
-							 <button ng-click="ctrl.selectAllParameters( true, ctrl.request.selection.parameters )" class="btn btn-default btn-xs" >Select all</button>
-							 <button ng-click="ctrl.selectAllParameters( false, ctrl.request.selection.parameters )" class="btn btn-default  btn-xs" >Unselect</button>
-						</td>
-						<td></td>
-						</tr>
-						<tr  ng-show="ctrl.display.showadvance">
-							<th style="text-align: center;">Parameter</th>
-							<th style="text-align: center;" ng-show="ctrl.request.selection.type=='STD'">Operator</th>
-							<th style="text-align: center;" colspan="2">Value</th>
-							<th style="text-align: center;" ng-show="ctrl.display.showadvanceced">Visible</th>
-						</tr>
-						<tbody ng-repeat="fieldParameter in ctrl.getListParameters() track by $index" >
-						<tr ng-show="ctrl.isSelectionFieldVisible( fieldParameter )">
-							<td>{{fieldParameter.name}}</td>
-							<td  style="text-align: center;" ng-show="ctrl.request.selection.type=='STD'">
-								<select ng-model="fieldParameter.operator"  >
-									<option ng-repeat="item in ctrl.getListOperator(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.operator">{{item.name}}</option>
-								</select>
-							</td>
-							<td>
-		
-								<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.value"	size="{{fieldParameter.length}}">
-								<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
-								<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.value" length="{{fieldParameter.length}}">
-		
-								<div ng-show="fieldParameter.type =='SELECT' ">
-									<select ng-model="fieldParameter.value">
-										<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
-									</select>
-								</div>
-								<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
-									<select ng-model="fieldParameter.value">
-										<option ng-repeat="operator  in searchctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
-									</select>
-								</div>
-								<div ng-show="fieldParameter.type =='BOOLEAN' ">
-									<select ng-model="fieldParameter.value">
-									<option ng-repeat="item in ctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
-									</select>
-								</div>
-		        			</td>
-		        			<td>
-								<div ng-show="fieldParameter.operator == 'RANGE'">
-									To &nbsp;<input ng-show="fieldParameter.type =='STRING'" type="text" ng-model="fieldParameter.valueTo"	size="{{fieldParameter.length}}">
-									<input ng-show="fieldParameter.type =='NUM'" type="number" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
-									<input ng-show="fieldParameter.type =='DATE'" type="date" ng-model="fieldParameter.valueTo" length="{{fieldParameter.length}}">
+				<!-- ---------------------------------------- RESULT COLUMNS  (ctrl.request.columns ) -->
+				<div class="col-lg-6" ng-show="ctrl.display.showadvance">
+					<div class="panel panel-info" >
+						<div class="panel-heading">Result</div>
+				
+				
+						 <!-- <div class="alert alert-success">{{ctrl.request | json}}</div>-->
+				 
+						<div style="padding: 10px 10px 20px 20px" ng-show="! (ctrl.request.selection.type==='SQL')">
+							<table class="table table-striped table-hover table-condensed">
+								<tr>
+									<td colspan="1"></td>
+									<td>
+										 <button ng-click="ctrl.request.result.showAll=true" ng-class="ctrl.getButtonClass(ctrl.request.result.showAll)" ng-disabled="ctrl.request.result.showAll === true">Show all</button>
+										 <button ng-click="ctrl.request.result.showAll=false" ng-class="ctrl.getButtonClass( ! ctrl.request.result.showAll)"" ng-disabled="ctrl.request.result.showAll === false">Show only visible</button><br>
+										 <button ng-click="ctrl.selectAllParameters( true,  ctrl.request.result.columns )" class="btn btn-default btn-xs" >Select all</button>
+										 <button ng-click="ctrl.selectAllParameters( false, ctrl.request.result.columns )" class="btn btn-default  btn-xs" >Unselect</button>
+									</td>
+									<td colspan="2"></td>
+				
+								</tr>
+								<tr>
+									<th style="text-align: center;">Column</th>
+									<th style="text-align: center;">Visible</th>
+									<th style="text-align: center;">Group By</th>
+									<th style="text-align: center;">Sum</th>
+								</tr>
+								 <tbody ng-repeat="fieldResult in ctrl.getListColumnsResult() track by $index" >
+								 	<tr ng-show="(! ctrl.request.result.showAll && fieldResult.visible) || ctrl.request.result.showAll">
+										<td>{{fieldResult.name}}</td>
+									 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.visible"></input></td>
+									 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.groupby"></input></td>
+									 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.sum"></input></td>
+				      				</tr>
+				      			</tbody>
+							</table>
+						</div>
+						<div>
+							<!--  list or graph ?  -->
 			
-									<div ng-show="fieldParameter.type =='SELECT' ">
-										<select ng-model="fieldParameter.valueTo">
-											<option ng-repeat="operator  in fieldParameter.list" value="{{operator.name}}">{{operator.label}}</option>
-										</select>
-									</div>
-									<div ng-show="fieldParameter.type =='SELECTDEPENDS' ">
-										<select ng-model="fieldParameter.valueTo">
-											<option ng-repeat="operator  in searchctrl.getDependList( fieldPerimeter )" value="{{operator.name}}">{{operator.label}}</option>
-										</select>
-									</div>
-									<div ng-show="fieldParameter.type =='BOOLEAN' ">
-										<select ng-model="fieldParameter.valueTo">
-											<option ng-repeat="item in ctrl.getListBoolean(fieldParameter)" value="{{item.value}}" ng-selected="item.value == fieldParameter.value">{{item.name}}</option>
-										</select>
-									</div>
-								
-								</div>
-		        			</td>
-		        			<td ng-show="ctrl.display.showadvance"><input type="checkbox" ng-model="fieldParameter.visible"></input></td>
-		      			</td>
-		        		</tr>
-		        		</tbody>
-						</table>
-					</div> <!-- end type SQL -->
-					<!--  order ? -->
-					<div ng-show="ctrl.request.selection.type=='STD'">
-						Order by:
-						<table class="table">
-							<tr>
-							<td>	
-								<table class="table table-striped table-hover table-condensed">
-									<tr>
-										<th>Column</th>
-										<th>Direction</th>
-									</tr>
-									<tbody ng-repeat="fieldOrder in ctrl.getListColumnsOrders() track by $index" >
-									<tr>
-										<td>
-											<select ng-model="fieldOrder.columnid">
-												<option ng-repeat="item in ctrl.getListColumnsResult()" value="{{item.name}}" ng-selected="item.name == fieldOrder.columnid">{{item.name}}</option>
-											</select>
-										</td>
-										<td>
-											<select ng-model="fieldOrder.direction">
-												<option ng-repeat="item in ctrl.getListOrderDirection(fieldOrder)" value="{{item.value}}" ng-selected="item.value == fieldOrder.direction">{{item.name}}</option>
-											</select>
-											</td>
-									</tr>
-									</tbody>				
-								</table>
-							</td>
-							<td style="vertical-align:top">
-								<button ng-click=" ctrl.addColumnsOrder()" class="btn btn-primary btn-xs">Add orderBy</button>
-							</td>
-						</tr>
-						</table>
-					
-					</div> <!--  end type STD -->
-				</div>
-			</div> <!--  end panel -->
-			</div> <!--  end Selection -->
-		
-			<!-- ---------------------------------------- RESULT COLUMNS  (ctrl.request.columns ) -->
-			<div class="col-lg-6" ng-show="ctrl.display.showadvance">
-			<div class="panel panel-info" >
-				<div class="panel-heading">Result</div>
-		
-		
-				 <!-- <div class="alert alert-success">{{ctrl.request | json}}</div>-->
-		 
-				<div style="padding: 10px 10px 20px 20px" ng-show="! (ctrl.request.selection.type==='SQL')">
-					<table class="table table-striped table-hover table-condensed">
-						<tr>
-							<td colspan="1"></td>
-							<td>
-								 <button ng-click="ctrl.request.result.showAll=true" ng-class="ctrl.getButtonClass(ctrl.request.result.showAll)" ng-disabled="ctrl.request.result.showAll === true">Show all</button>
-								 <button ng-click="ctrl.request.result.showAll=false" ng-class="ctrl.getButtonClass( ! ctrl.request.result.showAll)"" ng-disabled="ctrl.request.result.showAll === false">Show only visible</button><br>
-								 <button ng-click="ctrl.selectAllParameters( true,  ctrl.request.result.columns )" class="btn btn-default btn-xs" >Select all</button>
-								 <button ng-click="ctrl.selectAllParameters( false, ctrl.request.result.columns )" class="btn btn-default  btn-xs" >Unselect</button>
-							</td>
-							<td colspan="2"></td>
-		
-						</tr>
-						<tr>
-							<th style="text-align: center;">Column</th>
-							<th style="text-align: center;">Visible</th>
-							<th style="text-align: center;">Group By</th>
-							<th style="text-align: center;">Sum</th>
-						</tr>
-						 <tbody ng-repeat="fieldResult in ctrl.getListColumnsResult() track by $index" >
-						 	<tr ng-show="(! ctrl.request.result.showAll && fieldResult.visible) || ctrl.request.result.showAll">
-								<td>{{fieldResult.name}}</td>
-							 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.visible"></input></td>
-							 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.groupby"></input></td>
-							 	<td style="text-align: center;">  <input type="checkbox" ng-model="fieldResult.sum"></input></td>
-		      				</tr>
-		      			</tbody>
-					</table>
-				</div>
-				<div>
-					<!--  list or graph ?  -->
-	
-					Type of result <select ng-model="ctrl.request.result.typeresult">
-						<option ng-repeat="item in ctrl.getListTypeResult()" value="{{item.value}}" ng-selected="item.value == ctrl.request.result.typeresult">{{item.name}}</option>
-					</select>
-	
-				</div>
-			</div> <!--  end result -->
-			</div> <!--  end Result Column -->
-		</div> <!--  end PanelBoby -->
-	</div> <!--  end panel -->
-	</div> <!--  end FILTER -->
-
+							Type of result <select ng-model="ctrl.request.result.typeresult">
+								<option ng-repeat="item in ctrl.getListTypeResult()" value="{{item.value}}" ng-selected="item.value == ctrl.request.result.typeresult">{{item.name}}</option>
+							</select>
+			
+						</div>
+					</div> <!--  end result -->
+				
+				
+				</div> <!--  end display.showadvance -->
+			</div> <!--  end Panel body Form Builder-->
+		</div> <!--  end panel -->
 				
 
+		<!--  --------------------------------  EXECUTION ---------------------------- -->
+		<div class="col-lg-12">
+			<div ng-show="ctrl.inprogress">
+				<span class="Loading">.</span>Please wait, work in progress
+			</div>
+			<button ng-click="ctrl.runRequestConfiguration('')" class="btn btn-info" ng-disabled="ctrl.inprogress || ctrl.request.sourcename==''">
+				<div class="glyphicon glyphicon-refresh"></div>	Search
+			</button>
+	
+	
+			<!--  result=<div class="alert alert-warning">{{ctrl.result | json}}</div>
+	
+			<div class="alert alert-success">{{ctrl.report.filterrecord| json}}</div>	  -->
+	
+			<!--
+			<div class="alert alert-info">{{ctrl.getResultRecords() | json}}</div>
+			 -->
+	
+			<div ng-bind-html="ctrl.getListEvents(ctrl.report.listevents )"></div>
+			<p>
+			<!--  Export CSV -->
+			<table>
+				<tr>
+					<td>
+						<fieldset ng-disabled="ctrl.report.nbrecords==0">
+							<a ng-click="ctrl.getLocalExcel()" title="Click to export to Excel file"><img src="img/docexcel.gif"/></a> Current page
+						</fieldset>
+					</td>
+					<td style="border:2px solid;border-color: #3498db; border-radius: 4px">
+						<table>
+						<tr><td>
+							Limitation: <input type="number" ng-model="ctrl.display.maxCsvValue"  style="font-size: 10px; padding: 1px 1px 1px 1px;">
+						</td><td>
+						<fieldset ng-disabled="ctrl.report.nbrecords==0">
+							<a href="?page=custompage_moonrover&action=excelRequest&maxCsvValue={{ctrl.display.maxCsvValue}}"   title="Click to export all the data (limited to the limitation)to Excel file"><img src="img/docexcel.gif"/></a> All Datas
+						</fieldset>
+						</tr></tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+			<p>
+			<h1>{{ctrl.request.displayname}}</h1>
+			<table>
+				<tr><td colspan="2"><div class="well">{{ctrl.request.description}}</div></td></tr>
+				<tr><td>Source:</td><td>{{ctrl.request.sourcename}}</td></tr>
+				<tr><td>TableName:</td><td>{{ctrl.request.tablename}}</td></tr>		
+			</table>
+			
+			<button ng-show="ctrl.allowAddRecord()" class="btn btn-primary btn-xs" ng-click="ctrl.addRecord(ctrl.getResultHeader(), ctrl.request.sourcename)">Add a record</button>
+		    <p> 
+			<table class="table table-striped table-hover table-condensed">
+				<th ng-repeat="header in ctrl.getResultHeader() track by $index" style="background-color: #99D9EA  ">
+		        	<div style="text-align: center;">{{header.title}}
+		            <a ng-show="header.isOrderer == true" href="#" ng-click="ctrl.setOrder( header.columnid, ! ctrl.isAscendantSort());" style="text-decoration:none">
+								<span ng-show="ctrl.getOrderByField() !== header.columnid" class="glyphicon glyphicon-minus">-</span>
+								<span ng-show="ctrl.getOrderByField() === header.columnid && ! ctrl.isAscendantSort()" class="glyphicon glyphicon-chevron-down"></span>
+								<span ng-show="ctrl.getOrderByField() === header.columnid && ctrl.isAscendantSort() " class="glyphicon glyphicon-chevron-up"></span>
+					</a>
+					</div>
+		        	<div ng-show="header.isfilter">
+		            	<br><input type="text" ng-model="ctrl.report.filterrecord[ header.name ]" size="15">
+		            </div>
+		        </th>
 
-	<!--  --------------------------------  EXECUTION ---------------------------- -->
-	<div class="col-lg-12">
-		<div ng-show="ctrl.inprogress">
-			<span class="Loading">.</span>Please wait, work in progress
-		</div>
-		<button ng-click="ctrl.runRequestConfiguration('')" class="btn btn-info" ng-disabled="ctrl.inprogress || ctrl.request.sourcename==''">Search</button>
-
-
-		<!--  result=<div class="alert alert-warning">{{ctrl.result | json}}</div>
-
-		<div class="alert alert-success">{{ctrl.report.filterrecord| json}}</div>	  -->
-
-	<!--
-		<div class="alert alert-info">{{ctrl.getResultRecords() | json}}</div>
-		 -->
-
-		<div ng-bind-html="ctrl.getListEvents(ctrl.report.listevents )"></div>
-		<p>
-		<!--  Export CSV -->
-		<table>
+		        <tr ng-repeat="record in ctrl.getResultData() track by $index">
+					<td ng-repeat="header in ctrl.getResultHeader() track by $index" style="{{ctrl.getStyleResultHeader( header)}}">
+							<div ng-show="header.type === '_EDITRECORD'">
+								<a href="#" ng-click="ctrl.editRecord( record, ctrl.getResultHeaderComplete(), ctrl.request.sourcename)"><span class="glyphicon glyphicon-pencil"></span></a>
+							</div>
+							<div ng-show="header.type === 'STRING'">
+								{{ctrl.getValue(record, header)}}
+							</div>
+							<div ng-show="header.type === 'NUM'">
+								{{ctrl.getValue(record, header)}}
+							</div>
+						<div ng-show="header.type === 'DATE'" >
+								{{ctrl.getValue(record, header) | date}}
+							</div>
+							<div ng-show="header.type === 'BOOLEAN'" style="text-align: center;">
+								{{ctrl.getValue(record, header)}}
+							</div>
+							</td>
+	
+						</td>
+				</tr>
+				
+				
+				<!-- footer -->
+				<tbody ng-repeat="record in ctrl.getResultFooterData() track by $index">
+					<tr >
+						<td ng-repeat="header in ctrl.getResultHeader() track by $index" style="background-color:#ffe458">
+							
+							<div ng-show="header.type === 'STRING'">
+								{{ctrl.getValue(record, header)}}
+							</div>
+							<div ng-show="header.type === 'NUM'" style="text-align: right;">
+								{{ctrl.getValue(record, header)}}
+							</div>
+						<div ng-show="header.type === 'DATE'" >
+								{{ctrl.getValue(record, header) | date}}
+							</div>
+							<div ng-show="header.type === 'BOOLEAN'" style="text-align: center;">
+								{{ctrl.getValue(record, header)}}
+							</div>
+							</td>
+	
+						</td>
+					</tr>
+	
+				<!--  SUMMARY Record -->
+			</table>
+			
+			
+			<!--  pagination -->
+			<div ng-show="ctrl.inprogress">
+				<span class="Loading">.</span>Please wait, work in progress
+			</div>
+			<fieldset ng-disabled="ctrl.inprogress || ctrl.request.sourcename==''"> 		
+				<table>
+					<tr><td>
+						Number total of record: {{ctrl.report.nbrecords}}. Lines par page:
+						<select ng-model="ctrl.display.numberperpage" ng-options="x.name for x in ctrl.getStepPagination()" ng-change="ctrl.runRequestConfiguration()">
+						</select>
+						
+					</td></tr>
+					<tr><td>
+						<pagination ng-model="ctrl.display.pagenumber"
+								total-items="ctrl.display.totallines"
+								items-per-page="ctrl.display.numberperpage.value"
+								ng-click="ctrl.runRequestConfiguration()"	
+								boundary-links="true" 
+								max-size="5"
+								boundary-link-numbers="true"
+								rotate="true"
+								force-ellipses="true"
+								ng-disabled="ctrl.inprogress">
+						</pagination>
+		
+					</td></tr>
+				</table>
+			</fieldset>
+			
+			<button ng-show="ctrl.allowAddRecord()" class="btn btn-primary btn-xs" ng-click="ctrl.addRecord(ctrl.getResultHeader(), ctrl.request.sourcename)">Add a record</button>
+		    		
+			<!--
+			
+			<div class="alert alert-success">TotalLine:<br>{{ctrl.display.totallines}}<br>
+			Nombre Item page{{ctrl.display.numberperpage.value}}<br>
+			Multi page?{{ctrl.display.totallines < ctrl.display.numberperpage.value}}
+			
+			</div>
+			<div class="alert alert-warning">getRequest:{{ctrl.getRequest()}}</div>
+	
+				
+				
+			<div class="alert alert-warning">order:{{ctrl.request.order}}<br>totalRecord:<br>{{ctrl.display}}</div>
+			<div class="alert alert-warning">Source:<br>{{ctrl.definition.listsources}}</div>
+			 -->
+		</div> <!--  end execution -->
+	</div> <!--  end formBuilder -->
+	
+	<!--  ************************************************************  -->	
+	<!--  Import														-->
+	<!--  ************************************************************  -->		
+	<div class="col-lg-12" ng-show="ctrl.navbaractiv === 'import' && ctrl.display.isadmin">
+	</div>
+	
+	<!--  ************************************************************  -->	
+	<!--  Export														-->
+	<!--  ************************************************************  -->		
+	<div class="col-lg-12" ng-show="ctrl.navbaractiv === 'export' && ctrl.display.isadmin">
+	
+		<div ng-show="ctrl.inprogress"><span class="Loading">.</span>Please wait, work in progress</div>
+						
+		<h1>Export data</h1>
+		<table class="table table-stripped">
+			<tr>
+				<th></th>
+				<th>Source</th>
+				<th>Table Name</th>
+				<th>Description</th>
+			</tr>
+			<tbody ng-repeat="item in ctrl.getListSources()">
+			<tr>
+				<td><input type="checkbox" ng-model="ctrl.exportdata.source[ item.sourcename ]" /></td>
+				<td>{{item.displayname}}</td>
+				<td>{{item.tablename}}</td>
+			</tr>
+				<td></td>
+				<td colspan="2" ng-show="ctrl.request.description.length>0"><div class="well">{{ctrl.request.description}}</div></td>
+			</tr>
+			
+		</table>
+		
+		<table class="table">
+			<tr><td>Maximum record per table:</td><td><input type="string" ng-model="ctrl.exportdata.maxrecordspertable"></input></td></tr>
+			<tr><td>Export Name:</td><td><input type="string" ng-model="ctrl.exportdata.name"></input><br/></td></tr>
+		</table>
+		<button ng-click="ctrl.launchExport()" class="btn btn-info"  ng-disabled="ctrl.inprogress">Start Export</button><br/>
+		
+		<div ng-bind-html="ctrl.getListEvents(ctrl.exportdata.listevents )"></div>
+		
+		<i>Export is started in background. When export it ready, a file will be available to download it. They will be available for 1 day.</i>
+		<h1>Available export</h1>
+		<button ng-click="ctrl.refreshExport()" class="btn btn-info" ng-disabled="ctrl.inprogress">
+				<div class="glyphicon glyphicon-refresh"></div>	Refresh
+			</button>
+	
+		bob
+		<table class="table table-stripped">
+			<tr>
+				<th>Name</th>
+				<th>Date of export</th>
+			</tr>
+			<tbody ng-repeat="item in ctrl.exportdata.exportfiles">
 			<tr>
 				<td>
-					<fieldset ng-disabled="ctrl.report.nbrecords==0">
-						<a ng-click="ctrl.getLocalExcel()" title="Click to export to Excel file"><img src="pageResource?page=custompage_moonrover&location=img/docexcel.gif"/></a> Current page
-					</fieldset>
+					<div ng-if="item.status === 'ready'">
+						<a href="?page=custompage_moonrover&action=exportfile&name={{item.filename}}">{{item.filename}}</a>
+					</div>
+					<div ng-if="item.status !== 'ready'">
+						{{item.filename}} (in progress)
+					</div>
 				</td>
-				<td style="border:2px solid;border-color: #3498db; border-radius: 4px">
-					<table>
-					<tr><td>
-						Limitation: <input type="number" ng-model="ctrl.display.maxCsvValue"  style="font-size: 10px; padding: 1px 1px 1px 1px;">
-					</td><td>
-					<fieldset ng-disabled="ctrl.report.nbrecords==0">
-						<a href="?page=custompage_moonrover&action=excelRequest&maxCsvValue={{ctrl.display.maxCsvValue}}"   title="Click to export all the data (limited to the limitation)to Excel file"><img src="pageResource?page=custompage_moonrover&location=img/docexcel.gif"/></a> All Datas
-					</fieldset>
-					</tr></tr>
-					</table>
-				</td>
+				<td>{{item.datefile}}</td>
 			</tr>
-		</table>
-		<p>
-		<button ng-show="ctrl.allowAddRecord()" class="btn btn-primary btn-xs" ng-click="ctrl.addRecord(ctrl.getResultHeader(), ctrl.request.sourcename)">Add a record</button>
-	    <p> 
-		<table class="table table-striped table-hover table-condensed">
-			<th ng-repeat="header in ctrl.getResultHeader() track by $index" style="background-color: #99D9EA  ">
-	        	<div style="text-align: center;">{{header.title}}
-	            <a ng-show="header.isOrderer == true" href="#" ng-click="ctrl.setOrder( header.columnid, ! ctrl.isAscendantSort());" style="text-decoration:none">
-							<span ng-show="ctrl.getOrderByField() !== header.columnid" class="glyphicon glyphicon-minus">-</span>
-							<span ng-show="ctrl.getOrderByField() === header.columnid && ! ctrl.isAscendantSort()" class="glyphicon glyphicon-chevron-down"></span>
-							<span ng-show="ctrl.getOrderByField() === header.columnid && ctrl.isAscendantSort() " class="glyphicon glyphicon-chevron-up"></span>
-				</a>
-				</div>
-	        	<div ng-show="header.isfilter">
-	            	<br><input type="text" ng-model="ctrl.report.filterrecord[ header.name ]" size="15">
-	            </div>
-	        </th>
-	        <tbody ng-repeat="record in ctrl.getResultData() track by $index">
-				<tr>
-					<td ng-repeat="header in ctrl.getResultHeader() track by $index">
-						<div ng-show="header.type === '_EDITRECORD'">
-							<a href="#" ng-click="ctrl.editRecord( record, ctrl.getResultHeaderComplete(), ctrl.request.sourcename)"><span class="glyphicon glyphicon-pencil"></span></a>
-						</div>
-						<div ng-show="header.type === 'STRING'">
-							{{ctrl.getValue(record, header)}}
-						</div>
-						<div ng-show="header.type === 'NUM'" style="text-align: right;">
-							{{ctrl.getValue(record, header)}}
-						</div>
-					<div ng-show="header.type === 'DATE'" >
-							{{ctrl.getValue(record, header) | date}}
-						</div>
-						<div ng-show="header.type === 'BOOLEAN'" style="text-align: center;">
-							{{ctrl.getValue(record, header)}}
-						</div>
-						</td>
-
-					</td>
-				</tr>
 			</tbody>
-			
-			<!-- footer -->
-			<tbody ng-repeat="record in ctrl.getResultFooterData() track by $index">
-				<tr >
-					<td ng-repeat="header in ctrl.getResultHeader() track by $index" style="background-color:#ffe458">
-						
-						<div ng-show="header.type === 'STRING'">
-							{{ctrl.getValue(record, header)}}
-						</div>
-						<div ng-show="header.type === 'NUM'" style="text-align: right;">
-							{{ctrl.getValue(record, header)}}
-						</div>
-					<div ng-show="header.type === 'DATE'" >
-							{{ctrl.getValue(record, header) | date}}
-						</div>
-						<div ng-show="header.type === 'BOOLEAN'" style="text-align: center;">
-							{{ctrl.getValue(record, header)}}
-						</div>
-						</td>
-
-					</td>
-				</tr>
-
-			<!--  SUMMARY Record -->
 		</table>
-		
-		
-		<!--  pagination -->
-		<div ng-show="ctrl.inprogress">
-			<span class="Loading">.</span>Please wait, work in progress
-		</div>
-		<fieldset ng-disabled="ctrl.inprogress || ctrl.request.sourcename==''"> 		
-			<table>
-				<tr><td>
-					Number total of record: {{ctrl.report.nbrecords}}. Lines par page:
-					<select ng-model="ctrl.display.numberperpage" ng-options="x.name for x in ctrl.getStepPagination()" ng-change="ctrl.runRequestConfiguration()">
-					</select>
+							
 					
-				</td></tr>
-				<tr><td>
-					<pagination ng-model="ctrl.display.pagenumber"
-							total-items="ctrl.display.totallines"
-							items-per-page="ctrl.display.numberperpage.value"
-							ng-click="ctrl.runRequestConfiguration()"	
-							boundary-links="true" 
-							max-size="5"
-							boundary-link-numbers="true"
-							rotate="true"
-							force-ellipses="true"
-							ng-disabled="ctrl.inprogress">
-					</pagination>
-	
-				</td></tr>
-			</table>
-		</fieldset>
-		
-		<button ng-show="ctrl.allowAddRecord()" class="btn btn-primary btn-xs" ng-click="ctrl.addRecord(ctrl.getResultHeader(), ctrl.request.sourcename)">Add a record</button>
-	    		
-		<!--
-		
-		<div class="alert alert-success">TotalLine:<br>{{ctrl.display.totallines}}<br>
-		Nombre Item page{{ctrl.display.numberperpage.value}}<br>
-		Multi page?{{ctrl.display.totallines < ctrl.display.numberperpage.value}}
-		
-		</div>
-		<div class="alert alert-warning">getRequest:{{ctrl.getRequest()}}</div>
-
-			
-			
-		<div class="alert alert-warning">order:{{ctrl.request.order}}<br>totalRecord:<br>{{ctrl.display}}</div>
-		<div class="alert alert-warning">Source:<br>{{ctrl.definition.listsources}}</div>
-		 -->
 	</div>
-
 	
-
+	
 
 
 </div> <!--  end controler -->
@@ -789,22 +1013,22 @@
 
 <!-- Third party dependencies -->
 
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/jquery.min.js"></script>
+<script src="3rd-party/jquery.min.js"></script>
 
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/angular.min.js"></script>
+<script src="3rd-party/angular.min.js"></script>
 
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/angular-resource.min.js"></script>
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/angular-cookies.min.js"></script>
+<script src="3rd-party/angular-resource.min.js"></script>
+<script src="3rd-party/angular-cookies.min.js"></script>
 
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/bootstrap/js/bootstrap.min.js"></script>
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/angular-bootstrap-tpls.min.js"></script>
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/angular-file-upload.js"></script>
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/ng-google-chart.js"></script>
-<script	src="pageResource?page=custompage_moonrover&location=3rd-party/angular-file-upload-shim.min.js"></script>
-<script	src="pageResource?page=custompage_moonrover&location=3rd-party/angular-file-upload.min.js"></script>
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/ng-modal.min.js"></script> 
+<script src="3rd-party/bootstrap/js/bootstrap.min.js"></script>
+<script src="3rd-party/angular-bootstrap-tpls.min.js"></script>
+<script src="3rd-party/angular-file-upload.js"></script>
+<script src="3rd-party/ng-google-chart.js"></script>
+<script	src="3rd-party/angular-file-upload-shim.min.js"></script>
+<script	src="3rd-party/angular-file-upload.min.js"></script>
+<script src="3rd-party/ng-modal.min.js"></script> 
 
-<script src="pageResource?page=custompage_moonrover&location=3rd-party/angular-sanitize.min.js"></script>
+<script src="3rd-party/angular-sanitize.min.js"></script>
 
 
 <!-- Application dependencies -->

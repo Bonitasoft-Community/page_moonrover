@@ -5,7 +5,7 @@ import org.bonitasoft.engine.session.APISession;
 
 public class NRSourceProcess extends NRSource {
 
-    public NRSource.SourceStatus getListBusinessDefinition(APISession apiSession,
+    public NRSource.SourceStatus loadBusinessDefinition(APISession apiSession,
             NRBusDefinitionFactory businessFactory) {
         return new SourceStatus();
 

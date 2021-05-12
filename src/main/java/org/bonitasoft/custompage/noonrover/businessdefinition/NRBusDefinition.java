@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI;
 import org.bonitasoft.custompage.noonrover.NoonRoverAccessAPI.ParameterSource.TYPEOUTPUT;
+import org.bonitasoft.custompage.noonrover.executor.NRStream;
 import org.bonitasoft.custompage.noonrover.executor.NRExecutor;
 import org.bonitasoft.custompage.noonrover.resultset.NRResultSet;
 import org.bonitasoft.custompage.noonrover.resultset.NRResultSetCsv;
@@ -63,7 +64,7 @@ public class NRBusDefinition {
      * list of table is due to MULTIPLE FIELD
      */
 
-    public List<String> listChilds = new ArrayList<String>();
+    public List<String> listChilds = new ArrayList<>();
 
     public enum OPERAND {
         AND, OR
@@ -87,7 +88,7 @@ public class NRBusDefinition {
         }
     };
 
-    public List<NRBusSelection> listSelections = new ArrayList<NRBusSelection>();
+    public List<NRBusSelection> listSelections = new ArrayList<>();
 
     /**
      * reference the result for the definition
@@ -99,12 +100,12 @@ public class NRBusDefinition {
     /**
      * index. Key must be in lower case
      */
-    private Map<String, NRBusSetAttributes> mapIndexes = new HashMap<String, NRBusSetAttributes>();
+    private Map<String, NRBusSetAttributes> mapIndexes = new HashMap<>();
 
     /**
      * constraints. Key must be in lower case
      */
-    private Map<String, NRBusSetAttributes> mapConstraints = new HashMap<String, NRBusSetAttributes>();
+    private Map<String, NRBusSetAttributes> mapConstraints = new HashMap<>();
 
     private NRBusSelection selectedSelection = null;
 
@@ -207,7 +208,7 @@ public class NRBusDefinition {
     /*                                                                      */
     /* a Business Definition has a list of attribute */
     /* -------------------------------------------------------------------- */
-    public List<NRBusAttribute> listAttributes = new ArrayList<NRBusAttribute>();
+    public List<NRBusAttribute> listAttributes = new ArrayList<>();
 
     public NRBusAttribute getInstanceAttribute(String tableName, String name, TYPECOLUMN typeColumn, boolean isCollection) {
         NRBusAttribute columnParameter = new NRBusAttribute(this, tableName, name, typeColumn, isCollection);
@@ -251,11 +252,11 @@ public class NRBusDefinition {
      * 
      * @return
      */
-    public NRExecutor.ExecutorStream execute(NoonRoverAccessAPI.ParameterSource parameterSource,
-            NRExecutor.ExecutorStream executorStream) {
+    public NRStream execute(NoonRoverAccessAPI.ParameterSource parameterSource,
+            NRStream executorStream) {
         try {
             // preload the executorStream with current Business Definition 
-            executorStream.result = result;
+            executorStream.setResult( result );
             executorStream.selection = selectedSelection;
             executorStream.name = this.getName();
             List<NRExecutor> listExecutor = new ArrayList<>();
@@ -265,15 +266,21 @@ public class NRBusDefinition {
             if (parameterSource.typeOutput == TYPEOUTPUT.CSV)
                 listExecutor.add(new NRResultSetCsv());
 
-            for (NRExecutor executor : listExecutor) {
-                executorStream = executor.execute(executorStream);
-            }
+            execute( executorStream, listExecutor);
         } catch (NRException e) {
             executorStream.listEvents.addAll(e.listEvents);
         }
         return executorStream;
     }
 
+    public NRStream execute( NRStream executorStream, List<NRExecutor> listExecutor) throws NRException { 
+        for (NRExecutor executor : listExecutor) {
+            executorStream = executor.execute(executorStream);
+        }
+        return executorStream;
+    
+    }
+    
     /* -------------------------------------------------------------------- */
     /*                                                                      */
     /* getJson */
@@ -296,7 +303,7 @@ public class NRBusDefinition {
         resultJson.put("description", "Description of " + sourceName);
 
         /** possible selection */
-        List<Map<String, Object>> listSelectionsJson = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> listSelectionsJson = new ArrayList<>();
 
         for (NRBusSelection selection : listSelections) {
 
